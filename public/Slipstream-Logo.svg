@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 386.73 408.33">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #e9282a;
+      }
+
+      .cls-2 {
+        fill: url(#linear-gradient-3);
+      }
+
+      .cls-3 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-4 {
+        fill: url(#linear-gradient);
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="209.51" y1="204.16" x2="93.51" y2="204.16" gradientUnits="userSpaceOnUse">
+      <stop offset=".35" stop-color="#fff"/>
+      <stop offset=".52" stop-color="#fefcfc"/>
+      <stop offset=".61" stop-color="#fdf4f4"/>
+      <stop offset=".69" stop-color="#fce6e7"/>
+      <stop offset=".75" stop-color="#fad3d4"/>
+      <stop offset=".81" stop-color="#f8b9bb"/>
+      <stop offset=".86" stop-color="#f49a9c"/>
+      <stop offset=".92" stop-color="#f17578"/>
+      <stop offset=".96" stop-color="#ec4b4f"/>
+      <stop offset="1" stop-color="#e92429"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="250.15" y1="204.01" x2="116.38" y2="204.01" gradientUnits="userSpaceOnUse">
+      <stop offset=".1" stop-color="#fff"/>
+      <stop offset=".45" stop-color="#f38c8f"/>
+      <stop offset=".77" stop-color="#e92429"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-3" x1="290.5" y1="204.01" x2="174.5" y2="204.01" gradientUnits="userSpaceOnUse">
+      <stop offset=".09" stop-color="#fff"/>
+      <stop offset=".24" stop-color="#f6adaf"/>
+      <stop offset=".39" stop-color="#ef6367"/>
+      <stop offset=".49" stop-color="#ea353a"/>
+      <stop offset=".55" stop-color="#e92429"/>
+    </linearGradient>
+  </defs>
+  <rect class="cls-1" width="386.73" height="408.33"/>
+  <g>
+    <polygon class="cls-4" points="114.53 0 93.67 0 188.8 203.87 93.67 408.33 114.53 408.33 209.66 203.87 114.53 0"/>
+    <polygon class="cls-3" points="135.38 408.03 156.24 408.03 251.37 203.57 156.22 0 135.38 0 230.51 203.57 135.38 408.03"/>
+    <polygon class="cls-2" points="177.08 408.03 197.93 408.03 293.07 203.64 197.92 0 177.07 0 272.2 203.64 177.08 408.03"/>
+  </g>
+</svg>
