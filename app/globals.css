@@ -1308,7 +1308,7 @@ a {
   display: grid;
   height: 100vh;
   height: 100dvh;
-  grid-template-rows: minmax(0, 1fr) var(--footer-height);
+  grid-template-rows: minmax(0, 1fr);
   grid-template-columns: 1fr;
   overflow: hidden;
   border: 2px solid var(--line);
@@ -2271,33 +2271,6 @@ a {
 
 .mobile-project-sheet {
   display: none;
-}
-
-.site-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 20px;
-  padding: 0 28px;
-  background: var(--stone);
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 620;
-  letter-spacing: -0.03em;
-}
-
-.footer-items {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-}
-
-.site-footer a {
-  transition: color 160ms ease;
-}
-
-.site-footer a:hover {
-  color: var(--foreground);
 }
 
 .global-footer {
@@ -4661,15 +4634,6 @@ a {
     width: 30px;
   }
 
-  .site-footer {
-    padding: 0 22px;
-    font-size: 12px;
-  }
-
-  .footer-items {
-    gap: 18px;
-  }
-
   .topbar-brand {
     grid-template-columns: 28px auto;
     gap: 9px;
@@ -5085,17 +5049,6 @@ a {
   .lower-nav a,
   .lower-nav button {
     font-size: 12px;
-  }
-
-  .site-footer {
-    align-items: center;
-    justify-content: center;
-  }
-
-  .footer-items {
-    align-items: flex-end;
-    flex-direction: column;
-    gap: 2px;
   }
 
   .contact-layout {

@@ -1035,13 +1035,6 @@ export default function Home() {
 
             <PortfolioCarousel />
           </div>
-
-          <footer className="site-footer" id="contact" aria-label="Footer">
-            <span className="footer-items">
-              <a href="mailto:will@pebblesprings.co">will@pebblesprings.co</a>
-              <span>© 2026 Pebblesprings Studio</span>
-            </span>
-          </footer>
         </section>
 
         <section
