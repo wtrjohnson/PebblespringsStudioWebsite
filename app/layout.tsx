@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SiteFooter } from "./SiteFooter.tsx";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -47,7 +48,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   );
 }

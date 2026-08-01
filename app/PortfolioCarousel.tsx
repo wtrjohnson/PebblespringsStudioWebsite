@@ -4,14 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, FocusEvent, MouseEvent, PointerEvent } from "react";
 import type { PortfolioProject } from "./portfolioData.ts";
 import { carouselProjects } from "./portfolioData.ts";
+import { animateScroll } from "./scrollMotion.ts";
 
 const ROTATION_MS = 5200;
+const INTRO_ROTATION_MS = 8200;
 const HOVER_INTENT_MS = 150;
 const CARD_SCROLL_OFFSET = 66;
 
 type ExpandedProjectState = {
   projectId: string | null;
-  activationMode: "pointer" | "keyboard" | "touch" | null;
+  activationMode: "pointer" | "keyboard" | "mobile" | null;
 };
 
 export function PortfolioCarousel() {
@@ -25,6 +27,7 @@ export function PortfolioCarousel() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<Array<HTMLElement | null>>([]);
   const scrollFrameRef = useRef<number | null>(null);
+  const autoScrollCancelRef = useRef<(() => void) | null>(null);
   const isAutoScrollingRef = useRef(false);
   const autoScrollTimeoutRef = useRef<number | null>(null);
   const isPausedRef = useRef(false);
@@ -41,6 +44,11 @@ export function PortfolioCarousel() {
     ? carouselProjects.findIndex((project) => project.id === expandedProjectId)
     : -1;
   const expandedPreviewProject = expandedPreviewIndex >= 0 ? carouselProjects[expandedPreviewIndex] : null;
+  const isMobileSheetOpen = expandedProject.activationMode === "mobile" && expandedPreviewProject !== null;
+
+  function getRotationDelay(index: number) {
+    return carouselProjects[index]?.isProposition ? INTRO_ROTATION_MS : ROTATION_MS;
+  }
 
   useEffect(() => {
     const scrollContainer = scrollRef.current;
@@ -52,9 +60,12 @@ export function PortfolioCarousel() {
 
     isAutoScrollingRef.current = true;
 
-    scrollContainer.scrollTo({
-      left: card.offsetLeft - CARD_SCROLL_OFFSET,
-      behavior: "smooth",
+    autoScrollCancelRef.current?.();
+    autoScrollCancelRef.current = animateScroll({
+      target: scrollContainer,
+      axis: "left",
+      to: card.offsetLeft - CARD_SCROLL_OFFSET,
+      duration: 760,
     });
 
     if (autoScrollTimeoutRef.current !== null) {
@@ -63,6 +74,7 @@ export function PortfolioCarousel() {
 
     autoScrollTimeoutRef.current = window.setTimeout(() => {
       isAutoScrollingRef.current = false;
+      autoScrollCancelRef.current = null;
     }, 700);
   }, [activeIndex, isCarouselLocked]);
 
@@ -81,7 +93,6 @@ export function PortfolioCarousel() {
     clearRotationTimeout();
     rotationStartedAtRef.current = window.performance.now();
     rotationTimeoutRef.current = window.setTimeout(() => {
-      remainingMsRef.current = ROTATION_MS;
       setActiveIndex((current) => (current + 1) % carouselProjects.length);
     }, delay);
   }
@@ -122,8 +133,8 @@ export function PortfolioCarousel() {
       setIsPaused(false);
     }
 
-    remainingMsRef.current = ROTATION_MS;
-    scheduleRotation(ROTATION_MS);
+    remainingMsRef.current = getRotationDelay(activeIndex);
+    scheduleRotation(remainingMsRef.current);
 
     return clearRotationTimeout;
   }, [activeIndex, isCarouselLocked]);
@@ -137,6 +148,8 @@ export function PortfolioCarousel() {
       if (autoScrollTimeoutRef.current !== null) {
         window.clearTimeout(autoScrollTimeoutRef.current);
       }
+
+      autoScrollCancelRef.current?.();
 
       clearRotationTimeout();
       clearHoverTimeout();
@@ -179,24 +192,6 @@ export function PortfolioCarousel() {
 
     function getExpandedAnchorCard() {
       return expandedAnchorIndex === null ? null : cardRefs.current[expandedAnchorIndex];
-    }
-
-    function handleDocumentPointerDown(event: globalThis.PointerEvent) {
-      if (expandedProject.activationMode !== "touch") {
-        return;
-      }
-
-      const target = event.target;
-
-      if (!(target instanceof Node)) {
-        return;
-      }
-
-      const activeCard = getExpandedAnchorCard();
-
-      if (activeCard && !activeCard.contains(target)) {
-        collapseProject();
-      }
     }
 
     function handleDocumentPointerMove(event: globalThis.PointerEvent) {
@@ -248,12 +243,10 @@ export function PortfolioCarousel() {
       }
     }
 
-    document.addEventListener("pointerdown", handleDocumentPointerDown);
     document.addEventListener("pointermove", handleDocumentPointerMove);
     document.addEventListener("keydown", handleDocumentKeyDown);
 
     return () => {
-      document.removeEventListener("pointerdown", handleDocumentPointerDown);
       document.removeEventListener("pointermove", handleDocumentPointerMove);
       document.removeEventListener("keydown", handleDocumentKeyDown);
     };
@@ -308,6 +301,10 @@ export function PortfolioCarousel() {
     setExpandedProject({ projectId, activationMode });
   }
 
+  function openMobileProject(projectId: string, anchorIndex: number) {
+    expandProject(projectId, "mobile", anchorIndex);
+  }
+
   function collapseProject() {
     clearHoverTimeout();
     setExpandedAnchorIndex(null);
@@ -315,7 +312,7 @@ export function PortfolioCarousel() {
   }
 
   function canHover() {
-    return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    return window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1101px)").matches;
   }
 
   function isActiveProject(index: number) {
@@ -326,8 +323,12 @@ export function PortfolioCarousel() {
     return index === activeIndex + 1 || index === activeIndex - 1;
   }
 
+  function isNextProject(index: number) {
+    return index === (activeIndex + 1) % carouselProjects.length;
+  }
+
   function activateCarouselIndex(index: number) {
-    remainingMsRef.current = ROTATION_MS;
+    remainingMsRef.current = getRotationDelay(index);
     setActiveIndex(index);
   }
 
@@ -353,9 +354,10 @@ export function PortfolioCarousel() {
     }
 
     clearHoverTimeout();
-    remainingMsRef.current = ROTATION_MS;
+    remainingMsRef.current = getRotationDelay(nextIndex);
     pauseRotation();
     setActiveIndex(nextIndex);
+    setExpandedAnchorIndex(nextIndex);
     setExpandedProject({
       projectId: nextProject.id,
       activationMode: expandedProject.activationMode ?? "pointer",
@@ -389,7 +391,7 @@ export function PortfolioCarousel() {
   }
 
   function handleCardFocus(event: FocusEvent<HTMLElement>, project: PortfolioProject, index: number) {
-    if (project.isProposition) {
+    if (project.isProposition || !canHover()) {
       pauseRotation();
       return;
     }
@@ -459,8 +461,14 @@ export function PortfolioCarousel() {
 
     if (expandedProjectId !== project.id) {
       event.preventDefault();
-      expandProject(project.id, "touch", index);
+      openMobileProject(project.id, index);
     }
+  }
+
+  function renderProjectStatement(project: PortfolioProject) {
+    return (project.statement ?? project.eyebrow).split("\n").map((line) => (
+      <span key={line}>{line}</span>
+    ));
   }
 
   function renderMedia(project: PortfolioProject) {
@@ -496,6 +504,10 @@ export function PortfolioCarousel() {
       id="top"
       aria-label="Pebblesprings Studio portfolio"
     >
+      <div className="mobile-hero-copy" aria-hidden="true">
+        <p>Recent work.</p>
+        <span>Small sites with sturdy bones, clear stories, and room to grow.</span>
+      </div>
       <div
         className="portfolio-scroll"
         onScroll={syncActiveToScroll}
@@ -524,6 +536,8 @@ export function PortfolioCarousel() {
               className={[
                 "work-card",
                 project.isProposition ? "work-card-proposition" : "work-card-project",
+                isActiveProject(index) ? "is-active-project" : "",
+                isNextProject(index) && !isCarouselLocked ? "is-next-project" : "",
                 isExpandedAnchor ? "is-expanded" : "",
                 expandedProjectId && !isExpandedAnchor ? "is-hidden-while-expanded" : "",
               ]
@@ -597,9 +611,7 @@ export function PortfolioCarousel() {
                       </span>
                       <span className="expanded-title">{previewProject.title}</span>
                       <span className="expanded-statement">
-                        {(previewProject.statement ?? previewProject.eyebrow).split("\n").map((line) => (
-                          <span key={line}>{line}</span>
-                        ))}
+                        {renderProjectStatement(previewProject)}
                       </span>
                     </span>
 
@@ -640,6 +652,64 @@ export function PortfolioCarousel() {
           })}
         </div>
       </div>
+
+      {isMobileSheetOpen ? (
+        <div
+          aria-labelledby="mobile-project-sheet-title"
+          aria-modal="true"
+          className="mobile-project-sheet"
+          data-mobile-theme={expandedPreviewProject.expandedBackground === "#000000" ? "dark" : "light"}
+          role="dialog"
+          style={{
+            "--expanded-background": expandedPreviewProject.expandedBackground ?? "#000000",
+            "--statement-color": expandedPreviewProject.statementColor ?? "#ffffff",
+          } as CSSProperties}
+        >
+          <div className="mobile-project-sheet-scroll">
+            <div className="mobile-project-sheet-topline">
+              <span>
+                {expandedPreviewProject.number ?? String(expandedPreviewIndex).padStart(2, "0")} / Selected Work
+              </span>
+              <button
+                aria-label={`Close ${expandedPreviewProject.title} project preview`}
+                className="mobile-project-close"
+                onClick={collapseProject}
+                type="button"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+
+            <div className="mobile-project-sheet-heading">
+              <h2 id="mobile-project-sheet-title">{expandedPreviewProject.title}</h2>
+              <p>{renderProjectStatement(expandedPreviewProject)}</p>
+            </div>
+
+            <img
+              className="mobile-project-hero"
+              src={expandedPreviewProject.media?.[0]?.src ?? expandedPreviewProject.image}
+              alt={expandedPreviewProject.media?.[0]?.alt ?? `${expandedPreviewProject.title} website screenshot`}
+            />
+
+            <div className="mobile-project-meta">
+              <div className="mobile-project-scope">
+                <span>Scope</span>
+                {(expandedPreviewProject.scope ?? []).map((item) => (
+                  <strong key={item}>{item}</strong>
+                ))}
+              </div>
+              <div className="mobile-project-actions">
+                <button onClick={showNextExpandedProject} type="button">
+                  Next
+                </button>
+                <a href={expandedPreviewProject.url} rel="noopener noreferrer" target="_blank">
+                  Visit Site
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="rail-indicator" aria-label="Portfolio piece">
         {carouselProjects.map((project, index) => (

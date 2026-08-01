@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getDb } from "../../../db";
+import { websiteTests } from "../../../db/schema";
 
 type ScoreKey = "speed" | "reach" | "reliability" | "visibility";
+type ScoreSource = "pagespeed" | "demo";
 
 type CachedScore = {
   expiresAt: number;
   payload: {
     url: string;
     scores: Record<ScoreKey, number>;
+    source: ScoreSource;
   };
 };
 
@@ -27,7 +31,26 @@ function normalizeUrl(input: unknown) {
     return "";
   }
 
-  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const url = new URL(candidate);
+    const hostname = url.hostname.toLowerCase();
+    const isLocalhost = hostname === "localhost";
+    const isIpAddress = /^[\d.]+$/.test(hostname) || hostname.includes(":");
+    const shouldUseWww = !hostname.startsWith("www.")
+      && hostname.split(".").length === 2
+      && !isLocalhost
+      && !isIpAddress;
+
+    url.protocol = url.protocol.toLowerCase();
+    url.hostname = shouldUseWww ? `www.${hostname}` : hostname;
+    url.hash = "";
+
+    return url.toString();
+  } catch {
+    return candidate;
+  }
 }
 
 function getClientIp(request: NextRequest) {
@@ -69,6 +92,59 @@ function createDemoScores(url: string): Record<ScoreKey, number> {
     reliability: 52 + ((seed * 11) % 46),
     visibility: 30 + ((seed * 17) % 66),
   };
+}
+
+function getLowestScore(scores: Record<ScoreKey, number>) {
+  return (Object.entries(scores) as Array<[ScoreKey, number]>).reduce(
+    (lowest, current) => current[1] < lowest[1] ? current : lowest,
+  );
+}
+
+async function recordWebsiteTest({
+  submittedUrl,
+  normalizedUrl,
+  source,
+  scores,
+  referrer,
+  status,
+  errorMessage,
+}: {
+  submittedUrl: string;
+  normalizedUrl: string;
+  source: ScoreSource;
+  scores?: Record<ScoreKey, number>;
+  referrer: string | null;
+  status: "scored" | "failed";
+  errorMessage?: string;
+}) {
+  try {
+    const db = await getDb();
+    const parsedUrl = new URL(normalizedUrl);
+    const lowestScore = scores ? getLowestScore(scores) : null;
+    const [test] = await db
+      .insert(websiteTests)
+      .values({
+        submittedUrl,
+        normalizedUrl,
+        hostname: parsedUrl.hostname,
+        source,
+        speedScore: scores?.speed,
+        reachScore: scores?.reach,
+        reliabilityScore: scores?.reliability,
+        visibilityScore: scores?.visibility,
+        lowestScoreKey: lowestScore?.[0],
+        lowestScoreValue: lowestScore?.[1],
+        referrer,
+        status,
+        errorMessage,
+      })
+      .returning({ id: websiteTests.id });
+
+    return test?.id;
+  } catch (error) {
+    console.error("Unable to record website test", error);
+    return undefined;
+  }
 }
 
 async function fetchPageSpeedScores(url: string): Promise<Record<ScoreKey, number> | null> {
@@ -130,6 +206,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json().catch(() => null) as { url?: unknown } | null;
+  const submittedUrl = typeof body?.url === "string" ? body.url.trim() : "";
   const url = normalizeUrl(body?.url);
 
   if (!url) {
@@ -144,16 +221,33 @@ export async function POST(request: NextRequest) {
 
   const cacheKey = url.toLowerCase();
   const cached = scoreCache.get(cacheKey);
+  const referrer = request.headers.get("referer");
 
   if (cached && cached.expiresAt > Date.now()) {
-    return NextResponse.json(cached.payload);
+    const websiteTestId = await recordWebsiteTest({
+      submittedUrl,
+      normalizedUrl: cached.payload.url,
+      source: cached.payload.source,
+      scores: cached.payload.scores,
+      referrer,
+      status: "scored",
+    });
+
+    return NextResponse.json({
+      url: cached.payload.url,
+      scores: cached.payload.scores,
+      websiteTestId,
+    });
   }
 
   try {
     const pageSpeedScores = await fetchPageSpeedScores(url);
+    const scores = pageSpeedScores ?? createDemoScores(url);
+    const source: ScoreSource = pageSpeedScores ? "pagespeed" : "demo";
     const payload = {
       url,
-      scores: pageSpeedScores ?? createDemoScores(url),
+      scores,
+      source,
     };
 
     scoreCache.set(cacheKey, {
@@ -161,10 +255,30 @@ export async function POST(request: NextRequest) {
       payload,
     });
 
-    return NextResponse.json(payload);
+    const websiteTestId = await recordWebsiteTest({
+      submittedUrl,
+      normalizedUrl: url,
+      source,
+      scores,
+      referrer,
+      status: "scored",
+    });
+
+    return NextResponse.json({ url, scores, websiteTestId });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unable to score that site right now.";
+
+    await recordWebsiteTest({
+      submittedUrl,
+      normalizedUrl: url,
+      source: "pagespeed",
+      referrer,
+      status: "failed",
+      errorMessage,
+    });
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unable to score that site right now." },
+      { error: errorMessage },
       { status: 502 },
     );
   }

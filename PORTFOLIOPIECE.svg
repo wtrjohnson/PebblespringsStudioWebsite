@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2690.53 1468.24">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #231f20;
+      }
+
+      .cls-2 {
+        fill: #ed1c24;
+      }
+
+      .cls-3 {
+        fill: #fdb614;
+      }
+
+      .cls-4 {
+        fill: #eaeaea;
+      }
+
+      .cls-5 {
+        fill: #fff;
+      }
+
+      .cls-6 {
+        fill: #2ab34b;
+      }
+    </style>
+  </defs>
+  <rect id="WEBSITE" class="cls-5" y="85.22" width="2690.53" height="1383.02"/>
+  <path id="HEADER_BACKGROUND" data-name="HEADER BACKGROUND" class="cls-4" d="M863.77.09l-201.19-.09H0v85.22h273.98c14.26,0,25.82-11.56,25.82-25.82l404.29-5.55,159.91,5.55c0,14.26,11.56,25.82,25.82,25.82h1800.71V0L863.77.09Z"/>
+  <circle id="DELETE" class="cls-2" cx="65.65" cy="42.62" r="15.5"/>
+  <circle id="MINIMIZE" class="cls-3" cx="126.65" cy="42.62" r="15.5"/>
+  <circle id="EXPAND" class="cls-6" cx="187.65" cy="42.62" r="15.5"/>
+  <path id="TAB" class="cls-5" d="M335.24,15.84h492.71c19.77,0,35.81,16.05,35.81,35.81v33.57H299.8v-33.94c0-19.56,15.88-35.44,35.44-35.44Z"/>
+  <rect id="LOGO" class="cls-5" x="325.21" y="33.75" width="34.58" height="34.58"/>
+  <rect id="URL" class="cls-1" x="370.13" y="37.72" width="319.03" height="30.6"/>
+</svg>
