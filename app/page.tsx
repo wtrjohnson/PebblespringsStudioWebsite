@@ -1014,7 +1014,9 @@ export default function Home() {
   return (
     <main
       className={`scene-viewport${isCompactChrome ? " is-compact-chrome" : ""}`}
-      style={{ "--chrome-progress": chromeProgress } as CSSProperties}
+      style={{
+        "--chrome-progress": chromeProgress,
+      } as CSSProperties}
     >
       <div className="morph-chrome" aria-hidden={!isCompactChrome}>
         <button

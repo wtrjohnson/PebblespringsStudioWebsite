@@ -1,11 +1,11 @@
 :root {
-  --ink: #090909;
+  --ink: #15110e;
   --white: #ffffff;
   --warm-paper: #f7f5f0;
   --stone: #e4e3de;
   --muted-ink: #6b6a64;
   --deep-green: #0a6c64;
-  --signal-orange: #ff5a1f;
+  --signal-persimmon: #f04f2e;
   --background: var(--white);
   --foreground: var(--ink);
   --muted: var(--muted-ink);
@@ -13,7 +13,7 @@
   --wash: var(--stone);
   --line: var(--ink);
   --accent: var(--deep-green);
-  --signal: var(--signal-orange);
+  --signal: var(--signal-persimmon);
   --footer-height: 56px;
   --portfolio-width: min(72vw, 960px);
   --portfolio-height: calc(var(--portfolio-width) * 1468.24 / 2690.53);
@@ -1535,7 +1535,7 @@ a {
   position: absolute;
   inset: 0;
   border-bottom: 2px solid var(--line);
-  background: #000000;
+  background: var(--foreground);
   content: "";
 }
 
@@ -2371,7 +2371,7 @@ a {
   position: relative;
   overflow: visible;
   margin-top: clamp(46px, 3.8vw, 62px);
-  background: #000000;
+  background: var(--foreground);
   color: var(--paper);
 }
 
@@ -2482,7 +2482,7 @@ a {
 .global-footer-button.is-primary:focus-visible {
   border-color: #ffffff;
   background: #ffffff;
-  color: #000000;
+  color: var(--foreground);
 }
 
 .global-footer-copyright {
@@ -2515,7 +2515,7 @@ a {
   justify-content: space-between;
   padding: 0 34px;
   border-bottom: 2px solid var(--line);
-  background: #000000;
+  background: var(--foreground);
   color: var(--paper);
 }
 
@@ -2923,7 +2923,7 @@ a {
   width: min(100%, 980px);
   margin: 0 auto;
   border-radius: var(--checker-radius);
-  background: #000000;
+  background: var(--foreground);
   color: var(--paper);
   min-height: clamp(144px, 12.8vw, 180px);
   transition:
@@ -3345,7 +3345,7 @@ a {
 .checker-report-submit.is-sent {
   border-color: var(--paper);
   background: var(--paper);
-  color: #000000;
+  color: var(--foreground);
 }
 
 .checker-report-submit:disabled {
@@ -4244,7 +4244,7 @@ a {
     gap: 22px;
     padding: 0 22px;
     border-bottom: 2px solid var(--line);
-    background: #000000;
+    background: var(--foreground);
     color: var(--paper);
   }
 
@@ -4657,7 +4657,7 @@ a {
     justify-content: space-between;
     gap: 22px;
     padding: 0 22px;
-    background: #000000;
+    background: var(--foreground);
     border-bottom: 2px solid var(--line);
     color: var(--paper);
   }
