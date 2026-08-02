@@ -122,7 +122,7 @@ export const expandedCardLayouts: Record<string, ExpandedCardLayout> = {
     media: [
       {
         id: "homepage",
-        src: "/CPS-PortfolioPiece.svg",
+        src: "/CPS-Portfolio-4.png",
         alt: "Clear Policy Strategies homepage",
         top: "18%",
         left: "31%",
