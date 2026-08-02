@@ -258,10 +258,8 @@ export function TestHeroGallery() {
     );
   }
 
-  const upcoming = Array.from({ length: 3 }, (_, offset) => {
-    const index = (activeIndex + 1 + offset) % featuredProjects.length;
-    return { project: featuredProjects[index], index };
-  });
+  const nextIndex = (activeIndex + 1) % featuredProjects.length;
+  const nextProject = featuredProjects[nextIndex];
 
   function jumpToProject(index: number) {
     if (isExpanded) {
@@ -342,19 +340,14 @@ export function TestHeroGallery() {
         </a>
       </article>
 
-      <div className="test-hero-filmstrip">
-        {upcoming.map(({ project, index }) => (
-          <button
-            aria-label={`Show ${project.title}`}
-            className="test-hero-frame test-hero-frame-thumb"
-            key={project.id}
-            onClick={() => jumpToProject(index)}
-            type="button"
-          >
-            <img src={project.image} alt="" />
-          </button>
-        ))}
-      </div>
+      <button
+        aria-label={`Show ${nextProject.title}`}
+        className="test-hero-frame test-hero-frame-peek"
+        onClick={() => jumpToProject(nextIndex)}
+        type="button"
+      >
+        <img src={nextProject.image} alt="" />
+      </button>
       </div>
 
       <div className={`test-hero-rail-indicator${isExpanded ? " is-paused" : ""}`} aria-label="Portfolio piece">

@@ -5362,11 +5362,11 @@ a {
 
 .test-hero-main {
   display: grid;
-  grid-template-columns: minmax(300px, 0.85fr) minmax(0, 1.15fr);
+  grid-template-columns: minmax(260px, 0.64fr) minmax(0, 1.36fr);
   align-items: center;
-  gap: 48px;
+  gap: 32px;
   min-height: 100%;
-  padding: 40px 56px;
+  padding: 24px 24px 24px 48px;
   overflow: visible;
 }
 
@@ -5384,7 +5384,7 @@ a {
   gap: 2px;
   margin: 0;
   color: var(--foreground);
-  font-size: clamp(30px, 3.4vw, 50px);
+  font-size: clamp(28px, 3.2vw, 46px);
   font-weight: 860;
   letter-spacing: -0.04em;
   line-height: 1.05;
@@ -5399,7 +5399,7 @@ a {
   height: 100%;
   min-height: 0;
   flex-direction: column;
-  gap: 20px;
+  gap: 68px;
   padding: 24px 0 32px;
 }
 
@@ -5511,9 +5511,11 @@ a {
   position: relative;
   display: flex;
   width: 100%;
-  max-width: min(720px, max(320px, (100dvh - 300px) * 1.4));
+  max-width: min(1320px, max(320px, (100dvh - 150px) * 2.4));
+  height: var(--stack-height, auto);
   flex-direction: column;
-  gap: 16px;
+  overflow: hidden;
+  padding-right: 12%;
 }
 
 .test-hero-frame-main.work-card {
@@ -5528,8 +5530,11 @@ a {
 
 .test-hero-stack.is-project-expanded .test-hero-frame-main.work-card {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  top: 0;
+  right: 12%;
+  bottom: 0;
+  left: 0;
+  width: auto;
   height: var(--stack-height, 100%);
   aspect-ratio: auto;
 }
@@ -5630,36 +5635,40 @@ a {
   color: rgba(21, 17, 14, 0.62);
 }
 
-.test-hero-filmstrip {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  transition: opacity 220ms ease;
+.test-hero-frame-peek {
+  position: absolute;
+  top: 3%;
+  bottom: 3%;
+  left: calc(88% + 18px);
+  z-index: 1;
+  width: 18%;
+  appearance: none;
+  border-width: 4px;
+  border-radius: 18px;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  opacity: 0.32;
+  transform: scale(0.97);
+  transform-origin: left center;
+  transition:
+    opacity 260ms ease,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.test-hero-stack.is-project-expanded .test-hero-filmstrip {
+.test-hero-frame-peek:hover,
+.test-hero-frame-peek:focus-visible {
+  opacity: 0.65;
+  transform: scale(1);
+  outline: none;
+}
+
+.test-hero-stack.is-project-expanded .test-hero-frame-peek {
   opacity: 0;
   pointer-events: none;
 }
 
-.test-hero-frame-thumb {
-  appearance: none;
-  aspect-ratio: 2690.53 / 1468.24;
-  border-width: 4px;
-  border-radius: 20px;
-  padding: 0;
-  cursor: pointer;
-  font: inherit;
-  transition: transform 220ms ease;
-}
-
-.test-hero-frame-thumb:hover,
-.test-hero-frame-thumb:focus-visible {
-  transform: translate3d(0, -3px, 0);
-  outline: none;
-}
-
-.test-hero-frame-thumb img {
+.test-hero-frame-peek img {
   display: block;
   width: 100%;
   height: 100%;
@@ -5759,8 +5768,12 @@ a {
     display: none;
   }
 
-  .test-hero-filmstrip {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+  .test-hero-stack {
+    padding-right: 14%;
+  }
+
+  .test-hero-frame-peek {
+    left: calc(86% + 10px);
+    width: 22%;
   }
 }
