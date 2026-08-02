@@ -54,7 +54,7 @@ const scoreDescriptions: Record<ScoreKey, string> = {
 
 const transitionEndings = [
   "punch above their weight.",
-  "grow with our clients.",
+  "grow with you.",
   "hold up under scrutiny.",
 ];
 
