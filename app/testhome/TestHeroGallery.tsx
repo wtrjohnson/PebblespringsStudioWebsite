@@ -356,6 +356,25 @@ export function TestHeroGallery() {
         ))}
       </div>
       </div>
+
+      <div className={`test-hero-rail-indicator${isExpanded ? " is-paused" : ""}`} aria-label="Portfolio piece">
+        {featuredProjects.map((project, index) => (
+          <button
+            aria-current={activeIndex === index}
+            aria-label={`Show ${project.title}`}
+            className={[
+              index < activeIndex ? "is-complete" : "",
+              activeIndex === index ? "is-active" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            key={project.id}
+            disabled={isExpanded}
+            onClick={() => jumpToProject(index)}
+            type="button"
+          />
+        ))}
+      </div>
     </div>
   );
 }

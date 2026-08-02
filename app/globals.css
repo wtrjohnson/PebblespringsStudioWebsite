@@ -5659,6 +5659,66 @@ a {
   object-fit: cover;
 }
 
+.test-hero-rail-indicator {
+  --indicator-dot-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.test-hero-rail-indicator button {
+  position: relative;
+  display: block;
+  width: var(--indicator-dot-size);
+  height: var(--indicator-dot-size);
+  overflow: hidden;
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  background: var(--stone);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    width 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 260ms ease,
+    opacity 260ms ease;
+}
+
+.test-hero-rail-indicator button::before {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--signal);
+  content: "";
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.test-hero-rail-indicator .is-active {
+  width: 30px;
+  background: var(--stone);
+}
+
+.test-hero-rail-indicator .is-active::before {
+  animation: indicator-flow 5.2s linear forwards;
+}
+
+.test-hero-rail-indicator.is-paused .is-active::before {
+  animation-play-state: paused;
+}
+
+.test-hero-rail-indicator .is-complete {
+  background: var(--signal);
+}
+
+.test-hero-rail-indicator .is-complete::before {
+  transform: scaleX(1);
+}
+
+.test-hero-rail-indicator button:disabled {
+  cursor: default;
+}
+
 @media (max-width: 1100px) {
   .test-hero-main {
     grid-template-columns: 1fr;

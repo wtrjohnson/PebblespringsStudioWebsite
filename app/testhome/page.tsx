@@ -1100,9 +1100,9 @@ export default function Home() {
               </a>
 
               <h1 className="test-hero-headline">
-                <span className="test-hero-headline-accent">Distinctive websites</span>
-                <span>for businesses</span>
-                <span>and professionals.</span>
+                <span className="test-hero-headline-accent">We build websites</span>
+                <span>people actually</span>
+                <span>enjoy using.</span>
               </h1>
             </div>
 
