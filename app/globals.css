@@ -18,6 +18,9 @@
   --portfolio-width: min(72vw, 960px);
   --portfolio-height: calc(var(--portfolio-width) * 1468.24 / 2690.53);
   --portfolio-edge: calc((100dvh - var(--footer-height) - var(--portfolio-height)) / 2);
+  --hero-cta-height: 42px;
+  --hero-control-center-bottom: calc(var(--portfolio-edge) + 9px);
+  --transition-overlap: clamp(118px, 16vh, 172px);
   --sidebar-x: 28px;
   --brand-logo-size: 78px;
 }
@@ -1511,6 +1514,127 @@ a {
   color: var(--accent);
 }
 
+.morph-chrome {
+  --p: var(--chrome-progress, 0);
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 45;
+  height: var(--footer-height);
+  color: var(--paper);
+  opacity: clamp(0, calc((var(--p) - 0.05) * 1.35), 1);
+  pointer-events: none;
+}
+
+.scene-viewport.is-compact-chrome .morph-chrome {
+  pointer-events: auto;
+}
+
+.morph-chrome::before {
+  position: absolute;
+  inset: 0;
+  border-bottom: 2px solid var(--line);
+  background: #000000;
+  content: "";
+}
+
+.morph-brand {
+  position: absolute;
+  top: calc((var(--footer-height) - 32px) / 2);
+  left: 34px;
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.morph-brand-mark {
+  display: block;
+  width: 32px;
+  height: 32px;
+}
+
+.morph-brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: invert(var(--p));
+  object-fit: contain;
+}
+
+.morph-nav {
+  position: absolute;
+  top: 50%;
+  right: 34px;
+  display: flex;
+  flex-direction: row;
+  gap: 28px;
+  align-items: center;
+  justify-content: flex-end;
+  color: inherit;
+  font-size: 15px;
+  font-weight: 680;
+  letter-spacing: -0.05em;
+  opacity: clamp(0, calc((var(--p) - 0.18) * 1.45), 1);
+  transform: translateY(-50%);
+}
+
+.morph-nav button {
+  position: relative;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+  transition: color 160ms ease;
+}
+
+.morph-nav button::after {
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  height: 3px;
+  background: var(--signal);
+  content: "";
+  opacity: 0;
+  transform: scaleX(0.5);
+  transform-origin: left center;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.morph-nav button:hover,
+.morph-nav button:focus-visible,
+.morph-brand:hover,
+.morph-brand:focus-visible {
+  color: var(--signal);
+}
+
+.scene-viewport.is-compact-chrome .morph-nav {
+  opacity: 1;
+}
+
+.morph-work-link {
+  opacity: clamp(0, calc((var(--p) - 0.42) * 2.4), 1);
+}
+
+.scene-viewport.is-compact-chrome .morph-nav button:focus-visible::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
 .mobile-nav-menu {
   position: relative;
   z-index: 20;
@@ -1587,87 +1711,57 @@ a {
 
 .project-cta {
   position: absolute;
-  bottom: calc(var(--portfolio-edge) - 6px);
+  bottom: calc(var(--hero-control-center-bottom) - (var(--hero-cta-height) / 2));
   left: var(--sidebar-x);
   display: inline-flex;
-  width: max-content;
+  height: var(--hero-cta-height);
+  min-height: 42px;
   align-items: center;
-  gap: 10px;
-  font-size: 22px;
-  font-weight: 780;
+  justify-content: center;
+  gap: 9px;
+  font-size: 18px;
+  font-weight: 860;
   letter-spacing: -0.05em;
   line-height: 1;
   appearance: none;
-  border: 0;
-  background: transparent;
-  color: inherit;
+  border: 2px solid var(--signal);
+  border-radius: 999px;
+  background: var(--signal);
+  color: var(--paper);
   cursor: pointer;
   font-family: inherit;
-  padding: 0;
-}
-
-.cta-icon {
-  position: relative;
-  display: inline-block;
-  width: 34px;
-  height: 34px;
-  overflow: hidden;
+  padding: 8px 16px 11px;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 180ms ease;
 }
 
 .cta-label {
-  background: none;
-  color: var(--foreground);
-  transition: color 180ms ease;
+  color: inherit;
 }
 
-.project-cta:hover .cta-label,
-.project-cta:focus-visible .cta-label {
-  animation: cta-shine 900ms ease both;
-  background:
-    repeating-linear-gradient(
-      120deg,
-      var(--signal) 0 12px,
-      var(--accent) 12px 24px
-    );
-  background-size: 220% 100%;
-  background-clip: text;
-  color: transparent;
-  -webkit-background-clip: text;
+.cta-arrow {
+  display: inline-block;
+  color: inherit;
+  font-size: 18px;
+  line-height: 0.8;
+  transform: translate3d(0, 1px, 0);
+  transition: transform 180ms ease;
 }
 
-.cta-icon img {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+.project-cta:hover,
+.project-cta:focus-visible {
+  border-color: var(--foreground);
+  background: var(--foreground);
+  color: var(--paper);
+  transform: translate3d(0, -1px, 0);
 }
 
-.door-closed {
-  opacity: 1;
-  transform: scale(1);
-  transform-origin: left center;
-  transition: opacity 260ms ease, transform 260ms ease;
-}
-
-.door-open {
-  opacity: 0;
-  transform: scaleX(0.82);
-  transform-origin: left center;
-  transition: opacity 260ms ease, transform 260ms ease;
-}
-
-.project-cta:hover .door-closed,
-.project-cta:focus-visible .door-closed {
-  opacity: 0;
-  transform: scaleX(0.86);
-}
-
-.project-cta:hover .door-open,
-.project-cta:focus-visible .door-open {
-  opacity: 1;
-  transform: scaleX(1);
+.project-cta:hover .cta-arrow,
+.project-cta:focus-visible .cta-arrow {
+  transform: translate3d(3px, 1px, 0);
 }
 
 .portfolio-stage {
@@ -2425,6 +2519,15 @@ a {
   color: var(--paper);
 }
 
+.scene-viewport .lower-topbar {
+  display: none;
+}
+
+.scene-viewport .lower-scene {
+  border-top: 0;
+  margin-top: calc(var(--transition-overlap) * -1);
+}
+
 .topbar-brand {
   display: inline-grid;
   flex: 0 0 auto;
@@ -2650,13 +2753,24 @@ a {
   align-content: start;
   gap: clamp(28px, 3.8vw, 48px);
   overflow-anchor: none;
-  padding: clamp(46px, 5.6vw, 74px) clamp(28px, 6vw, 76px) 44px;
+  padding: clamp(46px, 5.6vw, 74px) clamp(28px, 6vw, 76px) clamp(104px, 10vw, 148px);
+}
+
+.performance-layout.has-checker-results {
+  --performance-ring-size: clamp(82px, 6.6vw, 98px);
+  gap: clamp(20px, 2.7vw, 34px);
+  padding-top: clamp(34px, 4.2vw, 56px);
 }
 
 .performance-heading {
-  max-width: 650px;
+  display: grid;
+  max-width: 1100px;
+  gap: 10px;
+  margin: 0 auto;
+  text-align: center;
 }
 
+.performance-heading h2,
 .checker-default h2,
 .checker-results h2,
 .results-label {
@@ -2666,13 +2780,24 @@ a {
   letter-spacing: -0.035em;
 }
 
+.performance-heading h2 {
+  font-size: clamp(32px, 3.9vw, 54px);
+  letter-spacing: -0.055em;
+}
+
+.performance-layout.has-checker-results .performance-heading h2 {
+  font-size: clamp(30px, 3.6vw, 50px);
+}
+
 .performance-heading p {
   margin: 0;
-  max-width: 620px;
-  font-size: clamp(18px, 1.8vw, 25px);
+  max-width: 760px;
+  justify-self: center;
+  color: rgba(9, 9, 9, 0.62);
+  font-size: clamp(17px, 1.55vw, 22px);
   font-weight: 650;
-  line-height: 1.12;
-  letter-spacing: -0.055em;
+  line-height: 1.16;
+  letter-spacing: -0.045em;
 }
 
 .score-grid,
@@ -2687,6 +2812,10 @@ a {
 .score-grid {
   width: var(--performance-grid-width);
   margin: clamp(12px, 2.6vw, 30px) auto 0;
+}
+
+.performance-layout.has-checker-results .score-grid {
+  margin-top: clamp(8px, 1.6vw, 18px);
 }
 
 .score-ring {
@@ -2791,6 +2920,8 @@ a {
   position: relative;
   overflow: hidden;
   overflow-anchor: none;
+  width: min(100%, 980px);
+  margin: 0 auto;
   border-radius: var(--checker-radius);
   background: #000000;
   color: var(--paper);
@@ -2986,7 +3117,7 @@ a {
   --result-ring-size: var(--performance-ring-size);
   --result-item-height: calc(var(--result-ring-size) + 32px);
   position: relative;
-  margin: clamp(24px, 3vw, 34px) auto 0;
+  margin: clamp(18px, 2.2vw, 26px) auto 0;
   width: var(--performance-grid-width);
 }
 
@@ -3072,10 +3203,10 @@ a {
 
 .checker-verdict {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(430px, 520px);
-  gap: 26px;
-  align-items: center;
-  margin-top: clamp(24px, 3.2vw, 42px);
+  grid-template-columns: 1fr;
+  gap: clamp(14px, 1.6vw, 20px);
+  align-items: start;
+  margin-top: clamp(18px, 2.2vw, 28px);
   opacity: 0;
   transform: translate3d(0, 16px, 0);
 }
@@ -3086,16 +3217,21 @@ a {
 
 .checker-verdict > p {
   margin: 0;
+  max-width: 740px;
+  justify-self: center;
   font-size: clamp(18px, 1.65vw, 24px);
   font-weight: 820;
   line-height: 1.06;
   letter-spacing: -0.065em;
+  text-align: center;
+  text-wrap: balance;
 }
 
 .checker-action-stack {
   display: grid;
-  width: 100%;
+  width: min(100%, 760px);
   gap: 10px;
+  justify-self: center;
   justify-items: stretch;
 }
 
@@ -3824,11 +3960,12 @@ a {
 .rail-indicator {
   --indicator-dot-size: 14px;
   position: absolute;
-  left: 66px;
-  bottom: 58px;
+  left: 50%;
+  bottom: calc(var(--hero-control-center-bottom) - (var(--indicator-dot-size) / 2));
   display: flex;
   align-items: center;
   gap: 6px;
+  transform: translateX(-50%);
   transition: bottom 620ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -3914,16 +4051,6 @@ a {
   }
 }
 
-@keyframes cta-shine {
-  from {
-    background-position: 100% 50%;
-  }
-
-  to {
-    background-position: 0 50%;
-  }
-}
-
 @keyframes brand-tile-turn {
   0% {
     opacity: 1;
@@ -3997,11 +4124,6 @@ a {
     scroll-behavior: auto;
   }
 
-  .door-closed,
-  .door-open {
-    transition: none;
-  }
-
   .rail-indicator,
   .rail-indicator button {
     animation: none;
@@ -4011,11 +4133,6 @@ a {
   .rail-indicator .is-active::before {
     animation: none;
     transform: scaleX(1);
-  }
-
-  .project-cta:hover .cta-label,
-  .project-cta:focus-visible .cta-label {
-    animation: none;
   }
 
   .brand-reveal-tile {
@@ -4101,6 +4218,10 @@ a {
 }
 
 @media (max-width: 1100px) {
+  :root {
+    --transition-overlap: clamp(72px, 11vh, 118px);
+  }
+
   .studio-shell {
     padding-top: 48px;
   }
@@ -4125,6 +4246,10 @@ a {
     border-bottom: 2px solid var(--line);
     background: #000000;
     color: var(--paper);
+  }
+
+  .morph-chrome {
+    display: none;
   }
 
   .lower-scene {
@@ -4838,6 +4963,7 @@ a {
   }
 
   .checker-action-stack {
+    justify-self: start;
     justify-items: start;
     width: min(100%, 560px);
   }
@@ -5089,8 +5215,17 @@ a {
     line-height: 1.06;
   }
 
+  .performance-heading {
+    max-width: 360px;
+    gap: 8px;
+  }
+
+  .performance-heading h2 {
+    font-size: 30px;
+  }
+
   .performance-heading p {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .score-grid,

@@ -94,6 +94,10 @@ function displayUrl(value: string) {
     .replace(/\/$/, "");
 }
 
+function clamp(value: number, min = 0, max = 1) {
+  return Math.min(max, Math.max(min, value));
+}
+
 function getScoreColor(score: number) {
   if (score >= 90) {
     return "#0CCE6B";
@@ -575,10 +579,14 @@ function PerformanceSection({
   }, [reportEmail, result]);
 
   return (
-    <div className="performance-layout" ref={performanceRef}>
+    <div
+      className={`performance-layout${shouldShowCheckerResults ? " has-checker-results" : ""}`}
+      ref={performanceRef}
+    >
       <section className="performance-scorecard" aria-label="Studio Lighthouse scorecard" ref={scorecardRef}>
         <div className="performance-heading">
-          <p>We guarantee high performing websites. Here&apos;s how our live websites measure up to our promise. Updated daily.</p>
+          <h2>High-performing websites, guaranteed.</h2>
+          <p>Here&apos;s how our live websites measure up to our promise. Updated daily.</p>
         </div>
 
         <div className="score-grid">
@@ -878,6 +886,56 @@ export default function Home() {
   const lowerSceneRef = useRef<HTMLElement | null>(null);
   const performanceSceneRef = useRef<HTMLDivElement | null>(null);
   const howWorkSceneRef = useRef<HTMLElement | null>(null);
+  const [chromeProgress, setChromeProgress] = useState(0);
+
+  useEffect(() => {
+    let frameId = 0;
+
+    const updateChromeProgress = () => {
+      frameId = 0;
+
+      const landingScene = landingSceneRef.current;
+
+      if (!landingScene) {
+        return;
+      }
+
+      const rect = landingScene.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      const morphDistance = Math.min(360, Math.max(180, viewportHeight * 0.32));
+      const morphStart = viewportHeight * 0.52;
+      const nextProgress = clamp((morphStart - rect.bottom) / morphDistance);
+
+      setChromeProgress((previousProgress) => {
+        if (Math.abs(previousProgress - nextProgress) < 0.005) {
+          return previousProgress;
+        }
+
+        return nextProgress;
+      });
+    };
+
+    const scheduleUpdate = () => {
+      if (frameId) {
+        return;
+      }
+
+      frameId = window.requestAnimationFrame(updateChromeProgress);
+    };
+
+    updateChromeProgress();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+
+    return () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+    };
+  }, []);
 
   const moveToScene = useCallback((scene: Scene) => {
     const scrollToElement = (element: HTMLElement | null, offset = 0) => {
@@ -950,8 +1008,40 @@ export default function Home() {
     },
   ], [moveToScene]);
 
+  const isCompactChrome = chromeProgress > 0.82;
+  const mobileNavItems = chromeProgress > 0.56 ? stickyNavItems : heroNavItems;
+
   return (
-    <main className="scene-viewport">
+    <main
+      className={`scene-viewport${isCompactChrome ? " is-compact-chrome" : ""}`}
+      style={{ "--chrome-progress": chromeProgress } as CSSProperties}
+    >
+      <div className="morph-chrome" aria-hidden={!isCompactChrome}>
+        <button
+          className="morph-brand"
+          type="button"
+          onClick={() => moveToScene("landing")}
+          aria-label="Pebblesprings Studio home"
+          tabIndex={isCompactChrome ? 0 : -1}
+        >
+          <span className="morph-brand-mark" aria-hidden="true">
+            <img src="/PSLogo.png" alt="" width="98" height="98" />
+          </span>
+        </button>
+        <nav className="morph-nav" aria-label="Primary navigation">
+          {stickyNavItems.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={item.onSelect}
+              tabIndex={isCompactChrome ? 0 : -1}
+              className={item.label === "Work" ? "morph-work-link" : undefined}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+      </div>
       <div className="scene-stack">
         <section
           className="studio-shell scene-panel"
@@ -1018,18 +1108,15 @@ export default function Home() {
                   Contact
                 </button>
               </nav>
-              <MobileNavMenu items={heroNavItems} />
+              <MobileNavMenu items={mobileNavItems} />
 
               <button
                 className="project-cta"
                 onClick={() => window.location.assign("/contact")}
                 type="button"
               >
-                <span className="cta-icon" aria-hidden="true">
-                  <img className="door-closed" src="/1.png" alt="" />
-                  <img className="door-open" src="/2.png" alt="" />
-                </span>
                 <span className="cta-label">Start a project</span>
+                <span className="cta-arrow" aria-hidden="true">→</span>
               </button>
             </aside>
 
