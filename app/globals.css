@@ -5353,14 +5353,21 @@ a {
 
 }
 
+.studio-shell.test-hero {
+  height: auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: visible;
+}
+
 .test-hero-main {
   display: grid;
   grid-template-columns: minmax(300px, 0.85fr) minmax(0, 1.15fr);
   align-items: center;
   gap: 48px;
-  height: 100%;
+  min-height: 100%;
   padding: 40px 56px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .test-hero-left {
@@ -5504,7 +5511,7 @@ a {
   position: relative;
   display: flex;
   width: 100%;
-  max-width: 720px;
+  max-width: min(720px, max(320px, (100dvh - 300px) * 1.4));
   flex-direction: column;
   gap: 16px;
 }
