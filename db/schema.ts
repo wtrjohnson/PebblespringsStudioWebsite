@@ -133,6 +133,16 @@ export const websiteTests = pgTable("website_tests", {
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
 });
 
+export const portfolioScores = pgTable("portfolio_scores", {
+  id: serial("id").primaryKey(),
+  url: text("url").notNull().unique(),
+  speedScore: integer("speed_score").notNull(),
+  reachScore: integer("reach_score").notNull(),
+  reliabilityScore: integer("reliability_score").notNull(),
+  visibilityScore: integer("visibility_score").notNull(),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
+});
+
 export const websiteTestRequests = pgTable("website_test_requests", {
   id: serial("id").primaryKey(),
   websiteTestId: integer("website_test_id")

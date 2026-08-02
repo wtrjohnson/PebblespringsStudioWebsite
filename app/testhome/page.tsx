@@ -12,6 +12,7 @@ import {
 } from "react";
 import { MobileNavMenu, type MobileNavItem } from "../MobileNavMenu.tsx";
 import { animateScroll } from "../scrollMotion.ts";
+import { usePortfolioScores } from "../usePortfolioScores.ts";
 import { TestHeroGallery } from "./TestHeroGallery.tsx";
 
 type Scene = "landing" | "about" | "performance";
@@ -29,7 +30,7 @@ type ScoreResult = {
   websiteTestId?: number;
 };
 
-const studioScores: ScoreMetric[] = [
+const FALLBACK_SCORES: ScoreMetric[] = [
   { key: "speed", label: "Speed", value: 100 },
   { key: "reach", label: "Reach", value: 94 },
   { key: "reliability", label: "Reliability", value: 97 },
@@ -346,6 +347,7 @@ function PerformanceSection({
   const [reportStatus, setReportStatus] = useState<"closed" | "editing" | "sending" | "sent">("closed");
   const [reportErrorMessage, setReportErrorMessage] = useState("");
   const [shouldAnimateStudioScores, setShouldAnimateStudioScores] = useState(false);
+  const studioScores = usePortfolioScores(FALLBACK_SCORES);
   const performanceRef = useRef<HTMLDivElement | null>(null);
   const scorecardRef = useRef<HTMLElement | null>(null);
   const checkerRef = useRef<HTMLElement | null>(null);
