@@ -11,9 +11,9 @@ import {
   useState,
 } from "react";
 import { MobileNavMenu, type MobileNavItem } from "./MobileNavMenu.tsx";
-import { PortfolioCarousel } from "./PortfolioCarousel.tsx";
 import { animateScroll } from "./scrollMotion.ts";
 import { usePortfolioScores } from "./usePortfolioScores.ts";
+import { TestHeroGallery } from "./TestHeroGallery.tsx";
 
 type Scene = "landing" | "about" | "performance";
 type ScoreKey = "speed" | "reach" | "reliability" | "visibility";
@@ -54,9 +54,9 @@ const scoreDescriptions: Record<ScoreKey, string> = {
 };
 
 const transitionEndings = [
-  "punch above their weight.",
-  "grow with you.",
-  "hold up under scrutiny.",
+  "load fast and stay fast.",
+  "you can actually update yourself.",
+  "look like nobody else's.",
 ];
 
 function normalizeUrl(value: string) {
@@ -97,6 +97,33 @@ function displayUrl(value: string) {
 
 function clamp(value: number, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
+}
+
+const DESCRIPTION_OVERLAP = 18;
+
+function descriptionPositionStyle(grid: HTMLElement | null, target: HTMLElement): CSSProperties {
+  if (!grid) {
+    return {};
+  }
+
+  const gridRect = grid.getBoundingClientRect();
+  const ringEl = target.querySelector(".score-ring") ?? target;
+  const ringRect = ringEl.getBoundingClientRect();
+  const centerY = ringRect.top - gridRect.top + ringRect.height / 2;
+  const ringCenterX = ringRect.left - gridRect.left + ringRect.width / 2;
+  const isRightHalf = ringCenterX > gridRect.width / 2;
+
+  const style: Record<string, string> = {
+    "--desc-y": `${centerY}px`,
+  };
+
+  if (isRightHalf) {
+    style["--desc-right"] = `${Math.max(0, gridRect.width - (ringRect.left - gridRect.left) - DESCRIPTION_OVERLAP)}px`;
+  } else {
+    style["--desc-left"] = `${Math.max(0, ringRect.right - gridRect.left - DESCRIPTION_OVERLAP)}px`;
+  }
+
+  return style as CSSProperties;
 }
 
 function getScoreColor(score: number) {
@@ -339,6 +366,11 @@ function PerformanceSection({
   const [urlInput, setUrlInput] = useState("");
   const [result, setResult] = useState<ScoreResult | null>(null);
   const [activeResultKey, setActiveResultKey] = useState<ScoreKey | null>(null);
+  const [resultDescStyle, setResultDescStyle] = useState<CSSProperties>({});
+  const [activeStudioKey, setActiveStudioKey] = useState<ScoreKey | null>(null);
+  const [studioDescStyle, setStudioDescStyle] = useState<CSSProperties>({});
+  const resultGridRef = useRef<HTMLDivElement | null>(null);
+  const studioGridRef = useRef<HTMLDivElement | null>(null);
   const [areResultDescriptionsEnabled, setAreResultDescriptionsEnabled] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -591,16 +623,62 @@ function PerformanceSection({
           <p>Here&apos;s how our live websites measure up to our promise. Updated daily.</p>
         </div>
 
-        <div className="score-grid">
+        <div
+          className={["score-grid", activeStudioKey ? "has-active-description" : ""]
+            .filter(Boolean)
+            .join(" ")}
+          onPointerLeave={() => setActiveStudioKey(null)}
+          ref={studioGridRef}
+        >
           {studioScores.map((metric, index) => (
-            <ScoreRing
+            <div
+              aria-describedby="studio-score-description"
+              aria-label={`${metric.label}: ${scoreDescriptions[metric.key]}`}
+              className={[
+                "result-score-item",
+                activeStudioKey === metric.key ? "is-active" : "",
+                activeStudioKey && activeStudioKey !== metric.key ? "is-dimmed" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
               key={metric.key}
-              label={metric.label}
-              score={metric.value}
-              animate={shouldAnimateStudioScores}
-              delay={index * 120}
-            />
+              onClick={(event) => {
+                setActiveStudioKey(metric.key);
+                setStudioDescStyle(descriptionPositionStyle(studioGridRef.current, event.currentTarget));
+              }}
+              onFocus={(event) => {
+                setActiveStudioKey(metric.key);
+                setStudioDescStyle(descriptionPositionStyle(studioGridRef.current, event.currentTarget));
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setActiveStudioKey(metric.key);
+                  setStudioDescStyle(descriptionPositionStyle(studioGridRef.current, event.currentTarget));
+                }
+              }}
+              onPointerEnter={(event) => {
+                setActiveStudioKey(metric.key);
+                setStudioDescStyle(descriptionPositionStyle(studioGridRef.current, event.currentTarget));
+              }}
+              role="button"
+              tabIndex={0}
+            >
+              <ScoreRing
+                label={metric.label}
+                score={metric.value}
+                animate={shouldAnimateStudioScores}
+                delay={index * 120}
+              />
+            </div>
           ))}
+          <p
+            className="result-score-description studio-score-description"
+            id="studio-score-description"
+            style={studioDescStyle}
+          >
+            {activeStudioKey ? scoreDescriptions[activeStudioKey] : ""}
+          </p>
         </div>
       </section>
 
@@ -618,7 +696,7 @@ function PerformanceSection({
         <div className="checker-stage">
           <div className="checker-default" aria-hidden={shouldShowCheckerResults ? "true" : undefined}>
             <div className="checker-default-copy">
-              <h2>Let&apos;s test your website.</h2>
+              <h2>Want to see how your website compares?</h2>
             </div>
             <form className="checker-form" onSubmit={handleSubmit}>
               <label className="sr-only" htmlFor="website-url">
@@ -642,7 +720,7 @@ function PerformanceSection({
 
           <div className="checker-results" aria-live="polite">
             <div className="checker-results-header">
-              <h2>Let&apos;s test your website.</h2>
+              <h2>Want to see how your website compares?</h2>
               {isChecking && <p className="results-label">Checking {displayUrl(pendingUrl)}</p>}
               {result && <p className="results-label">Scores for {displayUrl(result.url)}</p>}
             </div>
@@ -667,12 +745,12 @@ function PerformanceSection({
                   className={[
                     "result-score-grid",
                     activeResultKey ? "has-active-description" : "",
-                    activeResultKey ? `active-${activeResultKey}` : "",
                     areResultDescriptionsEnabled ? "is-description-ready" : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
                   onPointerLeave={() => setActiveResultKey(null)}
+                  ref={resultGridRef}
                 >
                   {resultMetrics.map((metric, index) => (
                     <div
@@ -686,14 +764,16 @@ function PerformanceSection({
                         .filter(Boolean)
                         .join(" ")}
                       key={`${result.url}-${metric.key}`}
-                      onClick={() => {
+                      onClick={(event) => {
                         if (areResultDescriptionsEnabled) {
                           setActiveResultKey(metric.key);
+                          setResultDescStyle(descriptionPositionStyle(resultGridRef.current, event.currentTarget));
                         }
                       }}
-                      onFocus={() => {
+                      onFocus={(event) => {
                         if (areResultDescriptionsEnabled) {
                           setActiveResultKey(metric.key);
+                          setResultDescStyle(descriptionPositionStyle(resultGridRef.current, event.currentTarget));
                         }
                       }}
                       onKeyDown={(event) => {
@@ -701,12 +781,14 @@ function PerformanceSection({
                           event.preventDefault();
                           if (areResultDescriptionsEnabled) {
                             setActiveResultKey(metric.key);
+                            setResultDescStyle(descriptionPositionStyle(resultGridRef.current, event.currentTarget));
                           }
                         }
                       }}
-                      onPointerEnter={() => {
+                      onPointerEnter={(event) => {
                         if (areResultDescriptionsEnabled) {
                           setActiveResultKey(metric.key);
+                          setResultDescStyle(descriptionPositionStyle(resultGridRef.current, event.currentTarget));
                         }
                       }}
                       role="button"
@@ -720,7 +802,7 @@ function PerformanceSection({
                       />
                     </div>
                   ))}
-                  <p className="result-score-description" id="score-description">
+                  <p className="result-score-description" id="score-description" style={resultDescStyle}>
                     {activeResultKey ? scoreDescriptions[activeResultKey] : ""}
                   </p>
                 </div>
@@ -1033,27 +1115,45 @@ export default function Home() {
           </span>
         </button>
         <nav className="morph-nav" aria-label="Primary navigation">
-          {stickyNavItems.map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              onClick={item.onSelect}
-              tabIndex={isCompactChrome ? 0 : -1}
-              className={item.label === "Work" ? "morph-work-link" : undefined}
-            >
-              {item.label}
-            </button>
-          ))}
+          <button
+            type="button"
+            onClick={() => moveToScene("landing")}
+            tabIndex={isCompactChrome ? 0 : -1}
+            className="morph-work-link"
+          >
+            Work
+          </button>
+          <button
+            type="button"
+            onClick={() => moveToScene("performance")}
+            tabIndex={isCompactChrome ? 0 : -1}
+          >
+            Performance
+          </button>
+          <button
+            type="button"
+            onClick={() => moveToScene("about")}
+            tabIndex={isCompactChrome ? 0 : -1}
+          >
+            Priorities
+          </button>
+          <button
+            type="button"
+            onClick={() => window.location.assign("/contact")}
+            tabIndex={isCompactChrome ? 0 : -1}
+          >
+            Contact
+          </button>
         </nav>
       </div>
       <div className="scene-stack">
         <section
-          className="studio-shell scene-panel"
+          className="studio-shell test-hero scene-panel"
           aria-label="Pebblesprings Studio home"
           ref={landingSceneRef}
         >
-          <div className="studio-main">
-            <aside className="studio-sidebar" aria-label="Pebblesprings Studio">
+          <div className="test-hero-main">
+            <div className="test-hero-left">
               <a
                 className="brand"
                 href="#top"
@@ -1101,30 +1201,34 @@ export default function Home() {
                 </span>
               </a>
 
-              <nav className="site-nav" aria-label="Primary navigation">
-                <button type="button" onClick={heroNavItems[0].onSelect}>
-                  Performance
-                </button>
-                <button type="button" onClick={heroNavItems[1].onSelect}>
-                  Priorities
-                </button>
-                <button type="button" onClick={heroNavItems[2].onSelect}>
-                  Contact
-                </button>
-              </nav>
-              <MobileNavMenu items={mobileNavItems} />
+              <h1 className="test-hero-headline">
+                <span className="test-hero-headline-accent">We build websites</span>
+                <span>people actually</span>
+                <span>enjoy using.</span>
+              </h1>
+            </div>
 
-              <button
-                className="project-cta"
-                onClick={() => window.location.assign("/contact")}
-                type="button"
-              >
-                <span className="cta-label">Start a project</span>
-                <span className="cta-arrow" aria-hidden="true">→</span>
-              </button>
-            </aside>
+            <div className="test-hero-right">
+              <div className="test-hero-topnav">
+                <nav className="test-hero-nav" aria-label="Primary navigation">
+                  <button type="button" onClick={heroNavItems[0].onSelect}>
+                    Performance
+                  </button>
+                  <button type="button" onClick={heroNavItems[1].onSelect}>
+                    Priorities
+                  </button>
+                </nav>
+                <button
+                  className="test-hero-cta"
+                  onClick={() => window.location.assign("/contact")}
+                  type="button"
+                >
+                  Start a Project
+                </button>
+              </div>
 
-            <PortfolioCarousel />
+              <TestHeroGallery />
+            </div>
           </div>
         </section>
 
@@ -1161,7 +1265,7 @@ export default function Home() {
                 Contact
               </button>
             </nav>
-            <MobileNavMenu items={stickyNavItems} />
+            <MobileNavMenu items={mobileNavItems} />
           </header>
           <TransitionStatement />
           <div className="lower-content">

@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, FocusEvent, MouseEvent } from "react";
-import type { PortfolioProject } from "../portfolioData.ts";
-import { carouselProjects } from "../portfolioData.ts";
+import type { PortfolioProject } from "./portfolioData.ts";
+import { carouselProjects } from "./portfolioData.ts";
 import { expandedCardLayouts } from "./expandedCardLayouts.ts";
 
 const featuredProjects = carouselProjects.filter((project) => !project.isProposition);
@@ -41,7 +41,9 @@ export function TestHeroGallery() {
       return;
     }
 
-    setIsCrossfading(true);
+    const frameId = window.requestAnimationFrame(() => {
+      setIsCrossfading(true);
+    });
 
     if (crossfadeTimeoutRef.current !== null) {
       window.clearTimeout(crossfadeTimeoutRef.current);
@@ -54,6 +56,7 @@ export function TestHeroGallery() {
     }, 460);
 
     return () => {
+      window.cancelAnimationFrame(frameId);
       if (crossfadeTimeoutRef.current !== null) {
         window.clearTimeout(crossfadeTimeoutRef.current);
         crossfadeTimeoutRef.current = null;

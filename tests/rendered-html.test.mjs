@@ -33,25 +33,24 @@ test("server-renders the Pebblesprings Studio portfolio", async () => {
   const html = await response.text();
   assert.match(html, /<title>Pebblesprings Studio<\/title>/i);
   assert.match(html, /Pebblesprings Studio/);
-  assert.match(html, /Start a project/);
+  assert.match(html, /Start a Project/);
+  assert.match(html, /We build websites/);
+  assert.match(html, /people actually/);
+  assert.match(html, /enjoy using/);
   assert.match(html, /Slipstream Advocacy/);
   assert.match(html, /Albert Rozin/);
-  assert.match(html, /Clear Policy Strategies/);
-  assert.match(html, /René Johnson Piano Studio/);
-  assert.match(html, /CPS/);
-  assert.match(html, /SlipstreamAdvocacy-PortfolioPiece\.svg/);
-  assert.match(html, /AlbertRozin-PortfolioPiece\.svg/);
-  assert.match(html, /RJohnsonPiano-PortfolioPiece\.svg/);
-  assert.match(html, /CPS-PortfolioPiece\.svg/);
+  assert.match(html, /SlipstreamAdvocacy-Expanded-Hero\.png/);
+  assert.match(html, /AlbertRozin-Portfolio-2\.png/);
   assert.match(html, /mailto:will@pebblesprings\.co/);
   assert.match(html, /class="scene-viewport"/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 
 test("removes starter preview files and includes the social card", async () => {
-  const [page, carousel, portfolioData, layout] = await Promise.all([
+  const [page, heroGallery, expandedLayouts, portfolioData, layout] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/PortfolioCarousel.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/TestHeroGallery.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/expandedCardLayouts.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/portfolioData.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     access(new URL("../public/og.png", import.meta.url)),
@@ -59,12 +58,13 @@ test("removes starter preview files and includes the social card", async () => {
     access(new URL("../public/pebblesprings-sign.jpeg", import.meta.url)),
   ]);
 
-  assert.match(page, /<PortfolioCarousel \/>/);
+  assert.match(page, /<TestHeroGallery \/>/);
   assert.match(page, /We build websites that/);
-  assert.match(page, /punch above their weight/);
-  assert.match(page, /hold up under scrutiny/);
-  assert.match(page, /We guarantee high performing websites/);
-  assert.match(page, /Let&apos;s test your website/);
+  assert.match(page, /load fast and stay fast/);
+  assert.match(page, /you can actually update yourself/);
+  assert.match(page, /look like nobody else's/);
+  assert.match(page, /High-performing websites, guaranteed/);
+  assert.match(page, /Want to see how your website compares/);
   assert.match(page, /What We Prioritize/);
   assert.match(page, /Sustainability/);
   assert.match(page, /Character/);
@@ -72,29 +72,28 @@ test("removes starter preview files and includes the social card", async () => {
   assert.doesNotMatch(page, /onWheel=\{handleSceneWheel\}/);
   assert.doesNotMatch(page, /onTouchStart=\{handleSceneTouchStart\}/);
   assert.doesNotMatch(page, /onTouchEnd=\{handleSceneTouchEnd\}/);
-  assert.match(carousel, /carouselProjects/);
-  assert.match(carousel, /Recent work\./);
-  assert.match(carousel, /Small sites with sturdy bones/);
-  assert.match(carousel, /ExpandedProjectState/);
-  assert.match(carousel, /preventDefault/);
-  assert.match(carousel, /isCarouselLocked/);
-  assert.match(carousel, /aria-expanded/);
-  assert.match(carousel, /mobile-project-sheet/);
-  assert.match(carousel, /Close \$/);
-  assert.match(carousel, /Visit Site/);
-  assert.match(carousel, /openMobileProject/);
-  assert.match(carousel, /is-next-project/);
-  assert.doesNotMatch(carousel, /onRequestWork/);
-  assert.doesNotMatch(carousel, /handlePreviewWheel/);
+  assert.match(heroGallery, /carouselProjects/);
+  assert.match(heroGallery, /expandedCardLayouts/);
+  assert.match(heroGallery, /ROTATION_MS/);
+  assert.match(heroGallery, /HOVER_INTENT_MS/);
+  assert.match(heroGallery, /aria-current/);
+  assert.match(heroGallery, /View case study/);
+  assert.match(heroGallery, /expandProject/);
+  assert.match(heroGallery, /collapseProject/);
+  assert.match(expandedLayouts, /SlipstreamAdvocacy-Expanded-Hero\.png/);
+  assert.match(expandedLayouts, /AlbertRozin-Expanded-Hero\.png/);
+  assert.match(expandedLayouts, /RJohnsonPiano-Expanded-Secondary\.png/);
+  assert.match(expandedLayouts, /CPS-Expanded-Secondary\.png/);
   assert.doesNotMatch(page, /WorkPortfolioReview/);
   assert.doesNotMatch(portfolioData, /portfolioReviewProjects/);
   assert.match(portfolioData, /ProjectMediaItem/);
   assert.match(portfolioData, /expandedLayout/);
   assert.match(portfolioData, /Clear Policy Strategies/);
-  assert.match(portfolioData, /PortfolioPiece\.svg/);
-  assert.match(carousel, /ROTATION_MS/);
-  assert.match(carousel, /INTRO_ROTATION_MS/);
-  assert.match(page, /className="studio-shell scene-panel"/);
+  assert.match(portfolioData, /René Johnson Piano Studio/);
+  assert.match(portfolioData, /SlipstreamAdvocacy-Portfolio-1\.png/);
+  assert.match(portfolioData, /RJohnsonPiano-Portfolio-3\.png/);
+  assert.match(portfolioData, /CPS-Portfolio-4\.png/);
+  assert.match(page, /className="studio-shell test-hero scene-panel"/);
   assert.match(layout, /title:\s*"Pebblesprings Studio"/);
   assert.match(layout, /url:\s*"\/og\.png"/);
   assert.doesNotMatch(page, /SkeletonPreview/);

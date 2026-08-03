@@ -4260,8 +4260,8 @@ a {
     gap: 22px;
     padding: 0 22px;
     border-bottom: 2px solid var(--line);
-    background: var(--foreground);
-    color: var(--paper);
+    background: var(--paper);
+    color: var(--foreground);
   }
 
   .morph-chrome {
@@ -4272,8 +4272,36 @@ a {
     padding-top: 48px;
   }
 
-  .lower-topbar {
-    display: none;
+  .scene-viewport .lower-topbar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 45;
+    display: flex;
+    height: 48px;
+    border-bottom: 0;
+    background: var(--foreground);
+    color: var(--paper);
+    transition:
+      background 180ms ease,
+      border-color 180ms ease,
+      color 180ms ease;
+  }
+
+  .scene-viewport.is-compact-chrome .lower-topbar {
+    border-bottom: 2px solid var(--line);
+    background: var(--foreground);
+    color: var(--paper);
+  }
+
+  .lower-topbar .topbar-brand img {
+    filter: none;
+    transition: filter 180ms ease;
+  }
+
+  .scene-viewport.is-compact-chrome .lower-topbar .topbar-brand img {
+    filter: invert(1);
   }
 
   .brand {
@@ -4886,7 +4914,7 @@ a {
   .result-score-grid {
     --mobile-ring-size: clamp(92px, 26vw, 118px);
     grid-template-columns: repeat(2, var(--mobile-ring-size));
-    gap: 34px clamp(34px, 10vw, 64px);
+    gap: 46px clamp(34px, 10vw, 64px);
     justify-content: center;
   }
 
@@ -4944,12 +4972,14 @@ a {
   }
 
   .score-ring strong {
-    font-size: calc(var(--ring-size) * 0.4);
-    letter-spacing: -0.02em;
+    font-size: calc(var(--ring-size) * 0.34);
+    letter-spacing: -0.015em;
   }
 
   .score-ring span {
-    font-size: clamp(18px, 4.8vw, 24px);
+    min-height: 1.1em;
+    font-size: clamp(17px, 4.4vw, 21px);
+    line-height: 1.05;
   }
 
   /* Absolute positioning against a fixed padding reservation can't fit copy of
@@ -5105,7 +5135,7 @@ a {
     padding: 0 12px;
   }
 
-  .lower-topbar {
+  .scene-viewport .lower-topbar {
     padding: 0 12px;
   }
 
@@ -5220,18 +5250,47 @@ a {
   }
 
   .transition-statement {
-    padding: 0 16px;
+    min-height: 165vh;
+    padding: 0 18px;
   }
 
   .transition-copy {
-    grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr);
-    gap: 14px;
+    position: sticky;
+    top: 48px;
+    min-height: calc(100svh - 48px);
+    grid-template-columns: 1fr;
+    gap: 12px;
+    align-content: center;
   }
 
   .transition-lead,
   .transition-endings p {
-    font-size: clamp(24px, 6.7vw, 30px);
-    line-height: 1.06;
+    font-size: clamp(32px, 9.4vw, 44px);
+    line-height: 0.98;
+    letter-spacing: -0.055em;
+  }
+
+  .transition-lead {
+    transform: none;
+    white-space: normal;
+  }
+
+  .transition-endings {
+    gap: 8px;
+  }
+
+  .transition-endings p {
+    opacity: 0.34;
+  }
+
+  .transition-endings p.is-active {
+    opacity: 1;
+    transform: none;
+  }
+
+  .transition-divider {
+    bottom: -12px;
+    height: 34px;
   }
 
   .performance-heading {
@@ -5251,7 +5310,7 @@ a {
   .result-score-grid {
     --mobile-ring-size: min(30vw, 104px);
     grid-template-columns: repeat(2, var(--mobile-ring-size));
-    gap: 20px clamp(34px, 10vw, 56px);
+    gap: 46px clamp(34px, 10vw, 56px);
     justify-content: center;
   }
 
@@ -5261,12 +5320,14 @@ a {
   }
 
   .score-ring strong {
-    font-size: calc(var(--ring-size) * 0.4);
-    letter-spacing: -0.02em;
+    font-size: calc(var(--ring-size) * 0.34);
+    letter-spacing: -0.015em;
   }
 
   .score-ring span {
-    font-size: clamp(17px, 5.6vw, 22px);
+    min-height: 1.1em;
+    font-size: clamp(16px, 5vw, 20px);
+    line-height: 1.05;
   }
 
   .website-checker {
@@ -5843,102 +5904,97 @@ a {
 }
 
 @media (max-width: 1100px) {
-  /* A shorter bar at phone widths; everything that clears it reads --nav-height,
-     so this is the only place the number changes. */
-  .test-home {
-    --nav-height: 60px;
-  }
-
-  .test-home .studio-shell.test-hero {
-    /* Overrides the shared .studio-shell `padding-top: 48px`, which is sized for
-       the homepage's .studio-sidebar, not this bar. */
-    padding-top: var(--nav-height);
-    /* dvh re-resolves as the mobile URL bar retracts, which made the hero visibly
-       grow mid-scroll. svh is the stable smallest-viewport value. */
+  .studio-shell.test-hero {
+    display: block;
     min-height: 100vh;
     min-height: 100svh;
+    overflow: visible;
+    padding-top: 48px;
   }
 
   .test-hero-main {
     position: relative;
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
-    /* Rows are auto inside a full-height section, so the default stretch
-       inflated them and pushed the headline miles off the gallery card.
-       Centring keeps the rows at their natural size; on a screen too short for
-       the content the section just grows (it is min-height only), so there is
-       no free space to centre and nothing overflows above the fixed bar. */
     align-content: center;
-    gap: 18px;
-    padding: 12px 20px 32px;
+    gap: 24px;
+    min-height: auto;
+    padding: clamp(18px, 5vw, 34px) clamp(16px, 5vw, 28px) 34px;
+    overflow: visible;
   }
 
   .test-hero-left {
-    gap: 18px;
+    gap: clamp(22px, 7vw, 42px);
     height: auto;
     justify-content: flex-start;
   }
 
-  .test-hero-right {
-    height: auto;
-    gap: 18px;
-    padding: 0;
-  }
-
-  /* The bar keeps its brand at every width; only the text links and the CTA
-     give way to the hamburger. */
-  .test-topbar {
-    gap: 16px;
-    padding: 0 20px;
-  }
-
-  .test-topbar-brand {
-    --brand-logo-size: 32px;
-  }
-
-  .test-topbar-brand .brand-name {
-    font-size: 13px;
-    font-weight: 760;
-  }
-
-  .test-hero-nav,
-  .test-hero-cta {
+  .test-hero-left .brand {
     display: none;
   }
 
-  /* Stops the desktop `flex: 1` from stretching the gallery and reopening the
-     gap under the headline. */
+  .test-hero-headline {
+    max-width: 640px;
+    font-size: clamp(34px, 8.5vw, 58px);
+    line-height: 1;
+  }
+
+  .test-hero-right {
+    height: auto;
+    gap: 22px;
+    padding: 0;
+  }
+
+  .test-hero-topnav {
+    order: 2;
+    display: flex;
+    justify-content: center;
+  }
+
+  .test-hero-nav {
+    display: none;
+  }
+
+  .test-hero-cta {
+    font-size: 15px;
+    padding: 11px 18px;
+  }
+
   .test-hero-gallery {
+    order: 1;
+    width: 100%;
     flex: 0 0 auto;
-    gap: 12px;
+    align-items: center;
+    gap: 14px;
   }
 
-  .test-hero-rail-row {
-    position: static;
-    transform: none;
+  .test-hero-stack {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    padding-right: 0;
   }
 
-  /* Undo the homepage carousel's `.work-card { display: none }` — the testhome
-     hero card borrows that class but never gets is-active-project. */
-  .test-home .test-hero-frame-main.work-card {
+  .test-hero-frame-main.work-card {
     position: relative;
     top: auto;
     left: auto;
     display: block;
     width: 100%;
+    height: auto;
+    aspect-ratio: 2690.53 / 1468.24;
     transform: none;
   }
 
-  /* The on-deck peek is a desktop flourish; at phone widths it sits past
-     .test-hero-stack's overflow:hidden edge and is clipped to a sliver. */
-  .test-hero-frame-peek {
-    display: none;
+  .test-hero-rail-row {
+    position: static;
+    justify-content: center;
+    width: 100%;
+    transform: none;
   }
 
-  .test-hero-stack {
-    height: auto;
-    max-width: 100%;
-    padding-right: 0;
+  .test-hero-frame-peek {
+    display: none;
   }
 
   .test-hero-frame {
@@ -5946,73 +6002,73 @@ a {
     border-radius: 20px;
   }
 
-  /* The negative --transition-overlap has to go: it pulls .lower-scene up into
-     the hero, which would drag the transition statement under the fixed bar. */
-  .test-home .lower-scene {
-    padding-top: var(--nav-height);
-    margin-top: 0;
+  .scene-viewport .lower-topbar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 45;
+    display: flex;
+    height: 48px;
+    border-bottom: 0;
+    background: var(--paper);
+    color: var(--foreground);
   }
-}
 
-@media (max-width: 640px) {
-  .test-hero-headline {
-    font-size: clamp(28px, 8vw, 40px);
+  .scene-viewport.is-compact-chrome .lower-topbar {
+    border-bottom: 2px solid var(--line);
+    background: var(--foreground);
+    color: var(--paper);
   }
 
-}
+  .lower-topbar .mobile-nav-menu {
+    display: block;
+  }
 
-/* The two-column lead/ending layout only reads correctly when the lead fits on
-   one line. On a phone it wraps and the sentence stops reading left-to-right,
-   so stack the lead over all three endings.
+  .lower-topbar .lower-nav {
+    display: none;
+  }
 
-   The endings are sentence fragments, not standalone lines, so showing them at
-   equal weight reads as a broken list. Instead the scroll-active ending is set
-   full size in black — it completes the lead as one sentence — while the other
-   two shrink to a faint caption size. They stay legible enough to promise more
-   is coming without competing for the read. Only size, colour and tracking
-   animate; nothing reflows away from its own line. */
-@media (max-width: 1100px) {
-  /* The three endings split (height - 100vh) of travel between them, so this is
-     ~75vh of scrolling per line. At 250vh each line turned over in half a
-     screen, which read as flicker rather than as three separate claims. */
-  .test-home .transition-statement {
+  .transition-statement {
     min-height: 325vh;
+    padding: 0 18px;
   }
 
-  .test-home .transition-copy {
+  .transition-copy {
     --transition-active-size: clamp(28px, 7vw, 40px);
     --transition-idle-size: clamp(17px, 4.3vw, 23px);
+    position: sticky;
+    top: 48px;
     display: block;
+    min-height: calc(100svh - 48px);
     align-content: center;
     max-width: 620px;
     text-align: left;
   }
 
-  .test-home .transition-lead {
+  .transition-lead {
     display: block;
-    white-space: normal;
-    transform: none;
     margin-bottom: 0.28em;
     font-size: var(--transition-active-size);
     line-height: 1.08;
     letter-spacing: -0.045em;
+    white-space: normal;
+    transform: none;
   }
 
-  .test-home .transition-endings {
+  .transition-endings {
     display: grid;
     align-content: start;
     gap: clamp(9px, 2.4vw, 13px);
-    /* Holds the block steady as the active line grows from one wrapped line to
-       two, so the centred copy does not jump between states. */
     min-height: clamp(150px, 42vw, 200px);
   }
 
-  .test-home .transition-endings p {
+  .transition-endings p {
     display: block;
+    color: rgba(9, 9, 9, 0.24);
     font-size: var(--transition-idle-size);
     line-height: 1.14;
     letter-spacing: -0.02em;
-    color: rgba(9, 9, 9, 0.24);
     transform: none;
     transition:
       font-size 380ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -6020,11 +6076,47 @@ a {
       color 320ms ease;
   }
 
-  .test-home .transition-endings p.is-active {
+  .transition-endings p.is-active {
+    color: var(--foreground);
     font-size: var(--transition-active-size);
     line-height: 1.08;
     letter-spacing: -0.045em;
-    color: var(--foreground);
     transform: none;
+  }
+
+  .transition-divider {
+    bottom: -12px;
+    height: 34px;
+  }
+}
+
+@media (max-width: 640px) {
+  .test-hero-headline {
+    font-size: clamp(34px, 11vw, 48px);
+    line-height: 1;
+  }
+
+  .test-hero-stack {
+    padding-right: 0;
+  }
+
+  .test-hero-frame {
+    border-width: 4px;
+    border-radius: 18px;
+  }
+
+  .test-hero-frame-main .expanded-project-preview {
+    --expanded-pad: 18px;
+    --expanded-radius: 14px;
+    --preview-radius: 14px;
+  }
+
+  .test-hero-frame-main .expanded-copy,
+  .test-hero-frame-main .expanded-scope {
+    max-width: 58%;
+  }
+
+  .test-hero-gallery-label {
+    font-size: 13px;
   }
 }

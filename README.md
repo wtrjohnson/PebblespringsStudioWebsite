@@ -12,7 +12,8 @@ npm run build
 
 ## Project Shape
 
-- `app/page.tsx` contains the single-page portfolio.
+- `app/page.tsx` contains the single-page portfolio homepage.
+- `app/TestHeroGallery.tsx` contains the homepage work gallery.
 - `app/globals.css` contains the visual system and responsive layout.
 - `public/og.png` is the generated social preview image.
 - `.openai/hosting.json` declares optional Sites resources.
