@@ -192,8 +192,16 @@ function TransitionStatement() {
         ? activeEndingElement.getBoundingClientRect().top - endings.getBoundingClientRect().top
         : 0;
 
+      // Below 1100px the lead sits stacked above all three endings rather than
+      // beside the active one, so there is nothing to align against — a stale
+      // offset would just shift the text.
+      const isStackedLayout = window.matchMedia("(max-width: 1100px)").matches;
+
       setActiveEnding(nextEnding);
-      transition.style.setProperty("--lead-offset", `${measuredLeadOffset}px`);
+      transition.style.setProperty(
+        "--lead-offset",
+        isStackedLayout ? "0px" : `${measuredLeadOffset}px`,
+      );
     };
 
     const requestUpdate = () => {
@@ -1097,7 +1105,7 @@ export default function Home() {
 
   return (
     <main
-      className={`scene-viewport${isCompactChrome ? " is-compact-chrome" : ""}`}
+      className={`scene-viewport test-home${isCompactChrome ? " is-compact-chrome" : ""}`}
       style={{
         "--chrome-progress": chromeProgress,
       } as CSSProperties}

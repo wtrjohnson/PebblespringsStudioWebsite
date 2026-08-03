@@ -38,6 +38,15 @@ export function MobileNavMenu({ items }: { items: MobileNavItem[] }) {
     };
   }, [isOpen]);
 
+  // The nav swaps item sets as you scroll between scenes; close rather than
+  // let a stale menu hang over the new set. Keyed on labels, not array
+  // identity, so an unmemoized `items` prop can't force it shut every render.
+  const itemSignature = items.map((item) => item.label).join("|");
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [itemSignature]);
+
   const selectItem = (item: MobileNavItem) => {
     setIsOpen(false);
     item.onSelect?.();
@@ -47,7 +56,7 @@ export function MobileNavMenu({ items }: { items: MobileNavItem[] }) {
     <div className="mobile-nav-menu" ref={menuRef}>
       <button
         aria-expanded={isOpen}
-        aria-label="Open navigation menu"
+        aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
         className="mobile-nav-toggle"
         onClick={() => setIsOpen((current) => !current)}
         type="button"
