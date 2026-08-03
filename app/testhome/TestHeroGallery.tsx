@@ -81,6 +81,13 @@ export function TestHeroGallery() {
         return;
       }
 
+      // Below 1100px the stack is `height: auto` and the peek is gone, so a
+      // pinned pixel height only fights the CSS (and flashes on rotate).
+      if (window.matchMedia("(max-width: 1100px)").matches) {
+        setStackHeight(null);
+        return;
+      }
+
       setStackHeight(stack.offsetHeight);
     };
 
@@ -227,6 +234,13 @@ export function TestHeroGallery() {
 
   function handlePreviewClick(event: MouseEvent<HTMLAnchorElement>) {
     if (canHover()) {
+      return;
+    }
+
+    // The expanded overlay is display:none below 1100px, so expanding there
+    // swallows the tap and leaves the rail disabled with nothing to show.
+    // Let the tap follow the link to the live site instead.
+    if (window.matchMedia("(max-width: 1100px)").matches) {
       return;
     }
 

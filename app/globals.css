@@ -1678,6 +1678,10 @@ a {
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
 }
 
+.mobile-nav-dropdown[hidden] {
+  display: none;
+}
+
 .mobile-nav-dropdown a,
 .mobile-nav-dropdown button {
   appearance: none;
@@ -4886,12 +4890,21 @@ a {
     margin-top: 28px;
   }
 
+  /* A fixed min-height plus overflow:hidden silently clipped tall results on
+     a phone. Let the results grow the container instead; the default state
+     stays absolute so the two still crossfade. */
   .website-checker {
     min-height: 250px;
+    overflow: visible;
   }
 
   .website-checker.has-results {
-    min-height: 650px;
+    min-height: 0;
+  }
+
+  .website-checker.has-results .checker-results {
+    position: relative;
+    inset: auto;
   }
 
   .checker-stage {
@@ -4935,24 +4948,26 @@ a {
     font-size: clamp(18px, 4.8vw, 24px);
   }
 
+  /* Absolute positioning against a fixed padding reservation can't fit copy of
+     varying length — it overlapped the bottom row of labels. The description is
+     a direct grid child, so let it span the row in normal flow instead: the
+     grid grows to fit and nothing can overlap or be clipped. */
   .result-score-description {
-    top: auto;
-    bottom: -8px;
-    left: 50%;
-    right: auto;
-    width: min(100%, 560px);
+    position: static;
+    grid-column: 1 / -1;
+    width: auto;
+    max-width: 560px;
+    margin: 6px auto 0;
     font-size: 22px;
     text-align: left;
-    transform: translate3d(-50%, 8px, 0);
-  }
-
-  .result-score-grid.has-active-description {
-    padding-bottom: 72px;
+    transform: none;
+    display: none;
   }
 
   .result-score-grid.has-active-description .result-score-description,
   .score-grid.has-active-description .result-score-description {
-    transform: translate3d(-50%, 0, 0);
+    display: block;
+    transform: none;
   }
 
   .checker-verdict {
@@ -5322,12 +5337,7 @@ a {
   }
 
   .result-score-description {
-    bottom: -4px;
     font-size: 19px;
-  }
-
-  .result-score-grid.has-active-description {
-    padding-bottom: 86px;
   }
 
   .how-work-section {
@@ -5742,16 +5752,22 @@ a {
 }
 
 @media (max-width: 1100px) {
+  /* The hero has no fixed topbar of its own — its nav is inline — so the
+     shared .studio-shell offset that clears .studio-sidebar is dead space. */
+  .test-home .studio-shell.test-hero {
+    padding-top: 0;
+  }
+
   .test-hero-main {
+    position: relative;
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
-    gap: 32px;
-    padding: 28px 24px;
-    overflow-y: auto;
+    gap: 28px;
+    padding: 24px 20px 32px;
   }
 
   .test-hero-left {
-    gap: 28px;
+    gap: 24px;
     height: auto;
   }
 
@@ -5760,8 +5776,82 @@ a {
     padding: 0;
   }
 
+  /* Pin the nav opposite the brand so the hero reads as a normal mobile
+     header instead of stacking a nav row under the headline. */
   .test-hero-topnav {
+    position: absolute;
+    top: 24px;
+    right: 20px;
+    gap: 14px;
+    justify-content: flex-end;
+  }
+
+  /* The hamburger covers these below 1100px. */
+  .test-hero-nav {
+    display: none;
+  }
+
+  /* Undo the homepage carousel's `.work-card { display: none }` — the testhome
+     hero card borrows that class but never gets is-active-project. */
+  .test-home .test-hero-frame-main.work-card {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: block;
+    width: 100%;
+    transform: none;
+  }
+
+  /* The on-deck peek is a desktop flourish; at phone widths it sits past
+     .test-hero-stack's overflow:hidden edge and is clipped to a sliver. */
+  .test-hero-frame-peek {
+    display: none;
+  }
+
+  .test-hero-stack {
+    height: auto;
+    max-width: 100%;
+    padding-right: 0;
+  }
+
+  .test-hero-frame {
+    border-width: 4px;
+    border-radius: 20px;
+  }
+
+  /* The shared mobile rule inverts the logo for the dark .studio-sidebar on
+     the homepage; the testhome hero is light, so it rendered white on white. */
+  .test-hero-left .brand-mark-default {
+    filter: none;
+  }
+
+  /* Restore navigation in the lower scene. .morph-chrome is hidden below
+     1100px and .lower-topbar is hidden on every .scene-viewport, which left
+     the page with no nav at all once the hero scrolled away. Sticky rather
+     than fixed, so it takes over exactly when the hero's own nav scrolls off
+     instead of hovering over the hero and eating its taps. */
+  .scene-viewport.test-home .lower-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    height: 48px;
+    align-items: center;
     justify-content: space-between;
+    padding: 0 18px;
+  }
+
+  /* The bar now occupies real space, so the offset that reserved room for it
+     would just leave a gap.
+
+     The scene-viewport overlap also has to go here. It pulls .lower-scene up
+     into the hero by --transition-overlap, which is harmless while the topbar
+     is display:none (every other scene-viewport), but with the bar restored it
+     dragged the bar ~90px above the fold — so the hero shipped with its own
+     hamburger *and* the sticky bar on screen at the same time. */
+  .test-home .lower-scene {
+    padding-top: 0;
+    margin-top: 0;
   }
 }
 
@@ -5770,16 +5860,76 @@ a {
     font-size: clamp(28px, 8vw, 40px);
   }
 
-  .test-hero-nav {
+  /* Contact lives in the hamburger menu at this width; the CTA would crowd
+     the brand. */
+  .test-hero-cta {
     display: none;
   }
+}
 
-  .test-hero-stack {
-    padding-right: 14%;
+/* The two-column lead/ending layout only reads correctly when the lead fits on
+   one line. On a phone it wraps and the sentence stops reading left-to-right,
+   so stack the lead over all three endings.
+
+   The endings are sentence fragments, not standalone lines, so showing them at
+   equal weight reads as a broken list. Instead the scroll-active ending is set
+   full size in black — it completes the lead as one sentence — while the other
+   two shrink to a faint caption size. They stay legible enough to promise more
+   is coming without competing for the read. Only size, colour and tracking
+   animate; nothing reflows away from its own line. */
+@media (max-width: 1100px) {
+  /* Three highlight states share this travel, so 180vh left the last ending
+     arriving as the section was already unsticking. */
+  .test-home .transition-statement {
+    min-height: 250vh;
   }
 
-  .test-hero-frame-peek {
-    left: calc(86% + 10px);
-    width: 22%;
+  .test-home .transition-copy {
+    --transition-active-size: clamp(28px, 7vw, 40px);
+    --transition-idle-size: clamp(17px, 4.3vw, 23px);
+    display: block;
+    align-content: center;
+    max-width: 620px;
+    text-align: left;
+  }
+
+  .test-home .transition-lead {
+    display: block;
+    white-space: normal;
+    transform: none;
+    margin-bottom: 0.28em;
+    font-size: var(--transition-active-size);
+    line-height: 1.08;
+    letter-spacing: -0.045em;
+  }
+
+  .test-home .transition-endings {
+    display: grid;
+    align-content: start;
+    gap: clamp(9px, 2.4vw, 13px);
+    /* Holds the block steady as the active line grows from one wrapped line to
+       two, so the centred copy does not jump between states. */
+    min-height: clamp(150px, 42vw, 200px);
+  }
+
+  .test-home .transition-endings p {
+    display: block;
+    font-size: var(--transition-idle-size);
+    line-height: 1.14;
+    letter-spacing: -0.02em;
+    color: rgba(9, 9, 9, 0.24);
+    transform: none;
+    transition:
+      font-size 380ms cubic-bezier(0.22, 1, 0.36, 1),
+      letter-spacing 380ms cubic-bezier(0.22, 1, 0.36, 1),
+      color 320ms ease;
+  }
+
+  .test-home .transition-endings p.is-active {
+    font-size: var(--transition-active-size);
+    line-height: 1.08;
+    letter-spacing: -0.045em;
+    color: var(--foreground);
+    transform: none;
   }
 }
