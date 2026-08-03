@@ -1876,6 +1876,24 @@ a {
   background: var(--paper);
 }
 
+.portfolio-screenshot-incoming {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  animation: hero-screenshot-crossfade 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes hero-screenshot-crossfade {
+  from {
+    opacity: 0;
+    transform: scale(1.015);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .portfolio-overlay {
   position: absolute;
   inset: 0;
@@ -2810,6 +2828,7 @@ a {
 }
 
 .score-grid {
+  position: relative;
   width: var(--performance-grid-width);
   margin: clamp(12px, 2.6vw, 30px) auto 0;
 }
@@ -3160,9 +3179,10 @@ a {
 
 .result-score-description {
   position: absolute;
-  top: calc(var(--result-item-height) / 2);
+  left: var(--desc-x, 50%);
+  top: var(--desc-y, 0);
   z-index: 2;
-  width: min(42%, 430px);
+  width: min(320px, 86vw);
   margin: 0;
   color: var(--paper);
   font-size: clamp(19px, 1.85vw, 27px);
@@ -3172,33 +3192,20 @@ a {
   opacity: 0;
   pointer-events: none;
   text-align: left;
-  transform: translate3d(0, calc(-50% + 12px), 0);
+  transform: translate3d(-50%, calc(-100% - 4px), 0);
   transition:
     opacity 220ms ease,
     transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.result-score-grid.has-active-description .result-score-description {
+.result-score-grid.has-active-description .result-score-description,
+.score-grid.has-active-description .result-score-description {
   opacity: 1;
-  transform: translate3d(0, -50%, 0);
+  transform: translate3d(-50%, calc(-100% - 18px), 0);
 }
 
-.result-score-grid.active-speed .result-score-description {
-  right: 0;
-}
-
-.result-score-grid.active-reach .result-score-description {
-  left: 57%;
-  width: min(42%, 460px);
-}
-
-.result-score-grid.active-reliability .result-score-description {
-  right: 57%;
-  width: min(42%, 460px);
-}
-
-.result-score-grid.active-visibility .result-score-description {
-  left: 0;
+.studio-score-description {
+  color: var(--foreground);
 }
 
 .checker-verdict {
@@ -3441,7 +3448,7 @@ a {
 
 .how-work-section h2 {
   margin: 0;
-  font-size: clamp(19px, 1.7vw, 25px);
+  font-size: clamp(24px, 2.2vw, 32px);
   font-weight: 860;
   line-height: 1;
   letter-spacing: -0.055em;
@@ -3456,8 +3463,8 @@ a {
   grid-template-rows: repeat(3, auto);
   column-gap: var(--how-card-gap);
   row-gap: clamp(24px, 3.5vw, 44px);
-  max-width: 960px;
-  min-height: clamp(650px, 58vw, 780px);
+  max-width: 1040px;
+  min-height: clamp(700px, 62vw, 840px);
   margin: 0 auto clamp(10px, 2vw, 28px);
   width: 100%;
 }
@@ -3466,7 +3473,7 @@ a {
   position: absolute;
   display: grid;
   width: calc((100% - var(--how-card-gap)) / 2);
-  min-height: clamp(250px, 25vw, 360px);
+  min-height: clamp(270px, 27vw, 390px);
   align-content: center;
   gap: clamp(16px, 2vw, 22px);
   border-radius: clamp(42px, 5vw, 70px) clamp(42px, 5vw, 70px) 0 0;
@@ -3480,12 +3487,12 @@ a {
 }
 
 .how-work-card:nth-child(2) {
-  top: clamp(92px, 9vw, 132px);
+  top: clamp(100px, 9.7vw, 142px);
   right: 0;
 }
 
 .how-work-card:nth-child(3) {
-  top: clamp(390px, 34vw, 470px);
+  top: clamp(420px, 36.5vw, 505px);
   left: 0;
 }
 
@@ -3497,14 +3504,14 @@ a {
 }
 
 .how-work-card h3 {
-  font-size: clamp(20px, 1.85vw, 28px);
+  font-size: clamp(24px, 2.2vw, 34px);
   font-weight: 860;
   line-height: 1;
 }
 
 .how-work-card p {
-  max-width: 330px;
-  font-size: clamp(18px, 1.8vw, 27px);
+  max-width: 360px;
+  font-size: clamp(20px, 2vw, 30px);
   font-weight: 400;
   line-height: 0.94;
 }
@@ -4942,15 +4949,6 @@ a {
     padding-bottom: 72px;
   }
 
-  .result-score-grid.active-speed .result-score-description,
-  .result-score-grid.active-reach .result-score-description,
-  .result-score-grid.active-reliability .result-score-description,
-  .result-score-grid.active-visibility .result-score-description {
-    left: 50%;
-    right: auto;
-    width: min(100%, 560px);
-  }
-
   .result-score-grid.has-active-description .result-score-description {
     transform: translate3d(-50%, 0, 0);
   }
@@ -5340,7 +5338,7 @@ a {
   }
 
   .how-work-card p {
-    font-size: 20px;
+    font-size: 22px;
   }
 
   .how-work-cta {
@@ -5491,6 +5489,12 @@ a {
   flex-direction: column;
   align-items: center;
   gap: 18px;
+}
+
+.test-hero-rail-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .test-hero-gallery-label {

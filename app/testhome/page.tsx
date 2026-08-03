@@ -54,9 +54,9 @@ const scoreDescriptions: Record<ScoreKey, string> = {
 };
 
 const transitionEndings = [
-  "punch above their weight.",
-  "grow with you.",
-  "hold up under scrutiny.",
+  "load fast and stay fast.",
+  "you can actually update yourself.",
+  "look like nobody else's.",
 ];
 
 function normalizeUrl(value: string) {
@@ -97,6 +97,25 @@ function displayUrl(value: string) {
 
 function clamp(value: number, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
+}
+
+const DESCRIPTION_WIDTH = 320;
+
+function descriptionPositionStyle(grid: HTMLElement | null, target: HTMLElement): CSSProperties {
+  if (!grid) {
+    return {};
+  }
+
+  const gridRect = grid.getBoundingClientRect();
+  const itemRect = target.getBoundingClientRect();
+  const half = DESCRIPTION_WIDTH / 2;
+  const rawCenter = itemRect.left + itemRect.width / 2 - gridRect.left;
+  const maxCenter = Math.max(half, gridRect.width - half);
+
+  return {
+    "--desc-x": `${Math.min(Math.max(rawCenter, half), maxCenter)}px`,
+    "--desc-y": `${itemRect.top - gridRect.top}px`,
+  } as CSSProperties;
 }
 
 function getScoreColor(score: number) {
@@ -339,6 +358,11 @@ function PerformanceSection({
   const [urlInput, setUrlInput] = useState("");
   const [result, setResult] = useState<ScoreResult | null>(null);
   const [activeResultKey, setActiveResultKey] = useState<ScoreKey | null>(null);
+  const [resultDescStyle, setResultDescStyle] = useState<CSSProperties>({});
+  const [activeStudioKey, setActiveStudioKey] = useState<ScoreKey | null>(null);
+  const [studioDescStyle, setStudioDescStyle] = useState<CSSProperties>({});
+  const resultGridRef = useRef<HTMLDivElement | null>(null);
+  const studioGridRef = useRef<HTMLDivElement | null>(null);
   const [areResultDescriptionsEnabled, setAreResultDescriptionsEnabled] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -591,16 +615,62 @@ function PerformanceSection({
           <p>Here&apos;s how our live websites measure up to our promise. Updated daily.</p>
         </div>
 
-        <div className="score-grid">
+        <div
+          className={["score-grid", activeStudioKey ? "has-active-description" : ""]
+            .filter(Boolean)
+            .join(" ")}
+          onPointerLeave={() => setActiveStudioKey(null)}
+          ref={studioGridRef}
+        >
           {studioScores.map((metric, index) => (
-            <ScoreRing
+            <div
+              aria-describedby="studio-score-description"
+              aria-label={`${metric.label}: ${scoreDescriptions[metric.key]}`}
+              className={[
+                "result-score-item",
+                activeStudioKey === metric.key ? "is-active" : "",
+                activeStudioKey && activeStudioKey !== metric.key ? "is-dimmed" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
               key={metric.key}
-              label={metric.label}
-              score={metric.value}
-              animate={shouldAnimateStudioScores}
-              delay={index * 120}
-            />
+              onClick={(event) => {
+                setActiveStudioKey(metric.key);
+                setStudioDescStyle(descriptionPositionStyle(studioGridRef.current, event.currentTarget));
+              }}
+              onFocus={(event) => {
+                setActiveStudioKey(metric.key);
+                setStudioDescStyle(descriptionPositionStyle(studioGridRef.current, event.currentTarget));
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setActiveStudioKey(metric.key);
+                  setStudioDescStyle(descriptionPositionStyle(studioGridRef.current, event.currentTarget));
+                }
+              }}
+              onPointerEnter={(event) => {
+                setActiveStudioKey(metric.key);
+                setStudioDescStyle(descriptionPositionStyle(studioGridRef.current, event.currentTarget));
+              }}
+              role="button"
+              tabIndex={0}
+            >
+              <ScoreRing
+                label={metric.label}
+                score={metric.value}
+                animate={shouldAnimateStudioScores}
+                delay={index * 120}
+              />
+            </div>
           ))}
+          <p
+            className="result-score-description studio-score-description"
+            id="studio-score-description"
+            style={studioDescStyle}
+          >
+            {activeStudioKey ? scoreDescriptions[activeStudioKey] : ""}
+          </p>
         </div>
       </section>
 
@@ -618,7 +688,7 @@ function PerformanceSection({
         <div className="checker-stage">
           <div className="checker-default" aria-hidden={shouldShowCheckerResults ? "true" : undefined}>
             <div className="checker-default-copy">
-              <h2>Let&apos;s test your website.</h2>
+              <h2>Want to see how your website compares?</h2>
             </div>
             <form className="checker-form" onSubmit={handleSubmit}>
               <label className="sr-only" htmlFor="website-url">
@@ -642,7 +712,7 @@ function PerformanceSection({
 
           <div className="checker-results" aria-live="polite">
             <div className="checker-results-header">
-              <h2>Let&apos;s test your website.</h2>
+              <h2>Want to see how your website compares?</h2>
               {isChecking && <p className="results-label">Checking {displayUrl(pendingUrl)}</p>}
               {result && <p className="results-label">Scores for {displayUrl(result.url)}</p>}
             </div>
@@ -667,12 +737,12 @@ function PerformanceSection({
                   className={[
                     "result-score-grid",
                     activeResultKey ? "has-active-description" : "",
-                    activeResultKey ? `active-${activeResultKey}` : "",
                     areResultDescriptionsEnabled ? "is-description-ready" : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
                   onPointerLeave={() => setActiveResultKey(null)}
+                  ref={resultGridRef}
                 >
                   {resultMetrics.map((metric, index) => (
                     <div
@@ -686,14 +756,16 @@ function PerformanceSection({
                         .filter(Boolean)
                         .join(" ")}
                       key={`${result.url}-${metric.key}`}
-                      onClick={() => {
+                      onClick={(event) => {
                         if (areResultDescriptionsEnabled) {
                           setActiveResultKey(metric.key);
+                          setResultDescStyle(descriptionPositionStyle(resultGridRef.current, event.currentTarget));
                         }
                       }}
-                      onFocus={() => {
+                      onFocus={(event) => {
                         if (areResultDescriptionsEnabled) {
                           setActiveResultKey(metric.key);
+                          setResultDescStyle(descriptionPositionStyle(resultGridRef.current, event.currentTarget));
                         }
                       }}
                       onKeyDown={(event) => {
@@ -701,12 +773,14 @@ function PerformanceSection({
                           event.preventDefault();
                           if (areResultDescriptionsEnabled) {
                             setActiveResultKey(metric.key);
+                            setResultDescStyle(descriptionPositionStyle(resultGridRef.current, event.currentTarget));
                           }
                         }
                       }}
-                      onPointerEnter={() => {
+                      onPointerEnter={(event) => {
                         if (areResultDescriptionsEnabled) {
                           setActiveResultKey(metric.key);
+                          setResultDescStyle(descriptionPositionStyle(resultGridRef.current, event.currentTarget));
                         }
                       }}
                       role="button"
@@ -720,7 +794,7 @@ function PerformanceSection({
                       />
                     </div>
                   ))}
-                  <p className="result-score-description" id="score-description">
+                  <p className="result-score-description" id="score-description" style={resultDescStyle}>
                     {activeResultKey ? scoreDescriptions[activeResultKey] : ""}
                   </p>
                 </div>

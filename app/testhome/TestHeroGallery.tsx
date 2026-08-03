@@ -32,6 +32,43 @@ export function TestHeroGallery() {
   const stackRef = useRef<HTMLDivElement | null>(null);
   const [stackHeight, setStackHeight] = useState<number | null>(null);
 
+  const [settledProject, setSettledProject] = useState(activeProject);
+  const [isCrossfading, setIsCrossfading] = useState(false);
+  const crossfadeTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (activeProject.id === settledProject.id) {
+      return;
+    }
+
+    setIsCrossfading(true);
+
+    if (crossfadeTimeoutRef.current !== null) {
+      window.clearTimeout(crossfadeTimeoutRef.current);
+    }
+
+    crossfadeTimeoutRef.current = window.setTimeout(() => {
+      setSettledProject(activeProject);
+      setIsCrossfading(false);
+      crossfadeTimeoutRef.current = null;
+    }, 460);
+
+    return () => {
+      if (crossfadeTimeoutRef.current !== null) {
+        window.clearTimeout(crossfadeTimeoutRef.current);
+        crossfadeTimeoutRef.current = null;
+      }
+    };
+  }, [activeProject, settledProject]);
+
+  useEffect(() => {
+    return () => {
+      if (crossfadeTimeoutRef.current !== null) {
+        window.clearTimeout(crossfadeTimeoutRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const stack = stackRef.current;
 
@@ -273,8 +310,6 @@ export function TestHeroGallery() {
 
   return (
     <div className="test-hero-gallery">
-      <span className="test-hero-gallery-label">Recent Work</span>
-
       <div
         className={`test-hero-stack${isExpanded ? " is-project-expanded" : ""}`}
         ref={stackRef}
@@ -297,9 +332,17 @@ export function TestHeroGallery() {
         >
           <img
             className="portfolio-screenshot"
-            src={activeProject.image}
-            alt={`${activeProject.title} website screenshot`}
+            src={settledProject.image}
+            alt={`${settledProject.title} website screenshot`}
           />
+          {isCrossfading && (
+            <img
+              key={activeProject.id}
+              className="portfolio-screenshot portfolio-screenshot-incoming"
+              src={activeProject.image}
+              alt={`${activeProject.title} website screenshot`}
+            />
+          )}
           <div className="portfolio-overlay" aria-hidden="true">
             <img className="portfolio-logo" src={activeProject.logo} alt="" />
             <span>{activeProject.title}</span>
@@ -350,23 +393,26 @@ export function TestHeroGallery() {
       </button>
       </div>
 
-      <div className={`test-hero-rail-indicator${isExpanded ? " is-paused" : ""}`} aria-label="Portfolio piece">
-        {featuredProjects.map((project, index) => (
-          <button
-            aria-current={activeIndex === index}
-            aria-label={`Show ${project.title}`}
-            className={[
-              index < activeIndex ? "is-complete" : "",
-              activeIndex === index ? "is-active" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            key={project.id}
-            disabled={isExpanded}
-            onClick={() => jumpToProject(index)}
-            type="button"
-          />
-        ))}
+      <div className="test-hero-rail-row">
+        <span className="test-hero-gallery-label">Recent Work</span>
+        <div className={`test-hero-rail-indicator${isExpanded ? " is-paused" : ""}`} aria-label="Portfolio piece">
+          {featuredProjects.map((project, index) => (
+            <button
+              aria-current={activeIndex === index}
+              aria-label={`Show ${project.title}`}
+              className={[
+                index < activeIndex ? "is-complete" : "",
+                activeIndex === index ? "is-active" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              key={project.id}
+              disabled={isExpanded}
+              onClick={() => jumpToProject(index)}
+              type="button"
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
