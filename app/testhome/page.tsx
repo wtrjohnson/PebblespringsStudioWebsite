@@ -95,10 +95,6 @@ function displayUrl(value: string) {
     .replace(/\/$/, "");
 }
 
-function clamp(value: number, min = 0, max = 1) {
-  return Math.min(max, Math.max(min, value));
-}
-
 const DESCRIPTION_OVERLAP = 18;
 
 function descriptionPositionStyle(grid: HTMLElement | null, target: HTMLElement): CSSProperties {
@@ -956,34 +952,17 @@ const HowWeWorkSection = forwardRef<HTMLElement, {
   );
 });
 
-const brandRevealColumns = 10;
-const brandRevealRows = 4;
-const blankBrandRevealTiles = new Set(["0-0", "0-3", "1-3", "8-3", "9-0", "9-3"]);
-const brandRevealTiles = Array.from({ length: brandRevealColumns * brandRevealRows }, (_, tileIndex) => {
-  const column = tileIndex % brandRevealColumns;
-  const row = Math.floor(tileIndex / brandRevealColumns);
-  const clusterDelay = column * 72 + row * 18;
-  const irregularDelay = [44, 0, 92, 28, 126, 62, 164, 100, 204, 142][column] + [0, 38, 14, 56][row];
-
-  return {
-    column,
-    row,
-    delay: 2000 + clusterDelay + irregularDelay,
-    isBlank: blankBrandRevealTiles.has(`${column}-${row}`),
-  };
-});
-
 export default function Home() {
   const landingSceneRef = useRef<HTMLElement | null>(null);
   const lowerSceneRef = useRef<HTMLElement | null>(null);
   const performanceSceneRef = useRef<HTMLDivElement | null>(null);
   const howWorkSceneRef = useRef<HTMLElement | null>(null);
-  const [chromeProgress, setChromeProgress] = useState(0);
+  const [isPastHero, setIsPastHero] = useState(false);
 
   useEffect(() => {
     let frameId = 0;
 
-    const updateChromeProgress = () => {
+    const updateNavState = () => {
       frameId = 0;
 
       const landingScene = landingSceneRef.current;
@@ -992,19 +971,12 @@ export default function Home() {
         return;
       }
 
-      const rect = landingScene.getBoundingClientRect();
-      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-      const morphDistance = Math.min(360, Math.max(180, viewportHeight * 0.32));
-      const morphStart = viewportHeight * 0.52;
-      const nextProgress = clamp((morphStart - rect.bottom) / morphDistance);
+      const navHeight = Number.parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue("--nav-height"),
+      ) || 0;
+      const heroBottom = landingScene.offsetTop + landingScene.offsetHeight;
 
-      setChromeProgress((previousProgress) => {
-        if (Math.abs(previousProgress - nextProgress) < 0.005) {
-          return previousProgress;
-        }
-
-        return nextProgress;
-      });
+      setIsPastHero(window.scrollY >= heroBottom - navHeight);
     };
 
     const scheduleUpdate = () => {
@@ -1012,10 +984,10 @@ export default function Home() {
         return;
       }
 
-      frameId = window.requestAnimationFrame(updateChromeProgress);
+      frameId = window.requestAnimationFrame(updateNavState);
     };
 
-    updateChromeProgress();
+    updateNavState();
     window.addEventListener("scroll", scheduleUpdate, { passive: true });
     window.addEventListener("resize", scheduleUpdate);
 
@@ -1055,7 +1027,7 @@ export default function Home() {
       };
 
       const stickyOffset = Number.parseFloat(
-        getComputedStyle(document.documentElement).getPropertyValue("--footer-height"),
+        getComputedStyle(document.documentElement).getPropertyValue("--nav-height"),
       ) || 0;
 
       scrollToElement(sceneTargets[scene], stickyOffset);
@@ -1100,42 +1072,64 @@ export default function Home() {
     },
   ], [moveToScene]);
 
-  const isCompactChrome = chromeProgress > 0.82;
-  const mobileNavItems = chromeProgress > 0.56 ? stickyNavItems : heroNavItems;
+  const mobileNavItems = isPastHero ? stickyNavItems : heroNavItems;
 
   return (
-    <main
-      className={`scene-viewport test-home${isCompactChrome ? " is-compact-chrome" : ""}`}
-      style={{
-        "--chrome-progress": chromeProgress,
-      } as CSSProperties}
-    >
-      <div className="morph-chrome" aria-hidden={!isCompactChrome}>
-        <button
-          className="morph-brand"
-          type="button"
-          onClick={() => moveToScene("landing")}
+    <main className={`scene-viewport test-home${isPastHero ? " is-past-hero" : ""}`}>
+      <header className="test-topbar" aria-label="Pebblesprings Studio navigation">
+        <a
+          className="brand test-topbar-brand"
+          href="#top"
           aria-label="Pebblesprings Studio home"
-          tabIndex={isCompactChrome ? 0 : -1}
+          onClick={(event) => {
+            event.preventDefault();
+            moveToScene("landing");
+          }}
         >
-          <span className="morph-brand-mark" aria-hidden="true">
-            <img src="/PSLogo.png" alt="" width="98" height="98" />
+          <span className="brand-mark" aria-hidden="true">
+            <img
+              className="brand-mark-image brand-mark-default"
+              src="/PSLogo.png"
+              alt=""
+              width="98"
+              height="98"
+            />
           </span>
-        </button>
-        <nav className="morph-nav" aria-label="Primary navigation">
-          {stickyNavItems.map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              onClick={item.onSelect}
-              tabIndex={isCompactChrome ? 0 : -1}
-              className={item.label === "Work" ? "morph-work-link" : undefined}
-            >
-              {item.label}
+          <span className="brand-name">
+            Pebblesprings
+            <br />
+            Studio
+          </span>
+        </a>
+
+        <div className="test-topbar-actions">
+          <nav className="test-hero-nav" aria-label="Primary navigation">
+            {isPastHero ? (
+              <button
+                className="test-topbar-work"
+                type="button"
+                onClick={() => moveToScene("landing")}
+              >
+                Work
+              </button>
+            ) : null}
+            <button type="button" onClick={heroNavItems[0].onSelect}>
+              Performance
             </button>
-          ))}
-        </nav>
-      </div>
+            <button type="button" onClick={heroNavItems[1].onSelect}>
+              Priorities
+            </button>
+          </nav>
+          <button
+            className="test-hero-cta"
+            onClick={() => window.location.assign("/contact")}
+            type="button"
+          >
+            Start a Project
+          </button>
+          <MobileNavMenu items={mobileNavItems} />
+        </div>
+      </header>
       <div className="scene-stack">
         <section
           className="studio-shell test-hero scene-panel"
@@ -1144,53 +1138,6 @@ export default function Home() {
         >
           <div className="test-hero-main">
             <div className="test-hero-left">
-              <a
-                className="brand"
-                href="#top"
-                aria-label="Pebblesprings Studio home"
-                onClick={(event) => {
-                  event.preventDefault();
-                  moveToScene("landing");
-                }}
-              >
-                <span className="brand-mark" aria-hidden="true">
-                  <img
-                    className="brand-mark-image brand-mark-default"
-                    src="/PSLogo.png"
-                    alt=""
-                    width="98"
-                    height="98"
-                  />
-                  <span className="brand-mark-hover" aria-hidden="true">
-                    <img
-                      className="brand-mark-image brand-mark-hover-image"
-                      src="/Logo%20Hover.png"
-                      alt=""
-                      width="98"
-                      height="98"
-                    />
-                    <span className="brand-reveal-grid" aria-hidden="true">
-                      {brandRevealTiles.map((tile) => (
-                        <span
-                          className={`brand-reveal-tile${tile.isBlank ? " is-blank" : ""}`}
-                          key={`${tile.column}-${tile.row}`}
-                          style={{
-                            "--tile-column": tile.column,
-                            "--tile-row": tile.row,
-                            "--tile-delay": `${tile.delay}ms`,
-                          } as CSSProperties}
-                        />
-                      ))}
-                    </span>
-                  </span>
-                </span>
-                <span className="brand-name">
-                  Pebblesprings
-                  <br />
-                  Studio
-                </span>
-              </a>
-
               <h1 className="test-hero-headline">
                 <span className="test-hero-headline-accent">We build websites</span>
                 <span>people actually</span>
@@ -1199,25 +1146,6 @@ export default function Home() {
             </div>
 
             <div className="test-hero-right">
-              <div className="test-hero-topnav">
-                <nav className="test-hero-nav" aria-label="Primary navigation">
-                  <button type="button" onClick={heroNavItems[0].onSelect}>
-                    Performance
-                  </button>
-                  <button type="button" onClick={heroNavItems[1].onSelect}>
-                    Priorities
-                  </button>
-                </nav>
-                <button
-                  className="test-hero-cta"
-                  onClick={() => window.location.assign("/contact")}
-                  type="button"
-                >
-                  Start a Project
-                </button>
-                <MobileNavMenu items={mobileNavItems} />
-              </div>
-
               <TestHeroGallery />
             </div>
           </div>
@@ -1228,36 +1156,6 @@ export default function Home() {
           aria-label="Pebblesprings Studio performance and process"
           ref={lowerSceneRef}
         >
-          <header className="lower-topbar" aria-label="Pebblesprings Studio navigation">
-            <button
-              className="topbar-brand"
-              type="button"
-              onClick={() => moveToScene("landing")}
-              aria-label="Pebblesprings Studio home"
-            >
-              <img src="/PSLogo.png" alt="" width="32" height="32" />
-              <span>
-                Pebblesprings
-                <br />
-                Studio
-              </span>
-            </button>
-            <nav className="lower-nav" aria-label="Primary navigation">
-              <button type="button" onClick={stickyNavItems[0].onSelect}>
-                Work
-              </button>
-              <button type="button" onClick={stickyNavItems[1].onSelect}>
-                Performance
-              </button>
-              <button type="button" onClick={stickyNavItems[2].onSelect}>
-                Priorities
-              </button>
-              <button type="button" onClick={stickyNavItems[3].onSelect}>
-                Contact
-              </button>
-            </nav>
-            <MobileNavMenu items={stickyNavItems} />
-          </header>
           <TransitionStatement />
           <div className="lower-content">
             <div id="performance" ref={performanceSceneRef}>
