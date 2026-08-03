@@ -23,6 +23,10 @@
   --transition-overlap: clamp(118px, 16vh, 172px);
   --sidebar-x: 28px;
   --brand-logo-size: 78px;
+  /* Height of the testhome fixed nav bar. Everything that has to clear it —
+     the hero, the lower scene, the programmatic scroll offset in
+     moveToScene — reads this one value. */
+  --nav-height: 92px;
 }
 
 * {
@@ -5363,10 +5367,91 @@ a {
 
 }
 
+.test-topbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 45;
+  display: flex;
+  height: var(--nav-height);
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 0 48px;
+  background: var(--paper);
+  color: var(--foreground);
+}
+
+.test-topbar::before {
+  position: absolute;
+  inset: 0;
+  border-bottom: 2px solid var(--line);
+  background: var(--foreground);
+  content: "";
+  opacity: 0;
+}
+
+.test-home.is-past-hero .test-topbar {
+  color: var(--paper);
+}
+
+.test-home.is-past-hero .test-topbar::before {
+  opacity: 1;
+}
+
+.test-topbar-brand,
+.test-topbar-actions {
+  position: relative;
+}
+
+.test-topbar-brand {
+  --brand-logo-size: 44px;
+  top: auto;
+  left: auto;
+  display: inline-flex;
+  width: max-content;
+  flex-direction: row;
+  align-items: center;
+  gap: 11px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.test-topbar-brand .brand-mark {
+  width: var(--brand-logo-size);
+  height: var(--brand-logo-size);
+  flex: 0 0 auto;
+}
+
+.test-topbar-brand .brand-mark-default {
+  filter: invert(0);
+}
+
+.test-home.is-past-hero .test-topbar-brand .brand-mark-default {
+  filter: invert(1);
+}
+
+.test-topbar-brand .brand-name {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1.06;
+  text-align: left;
+}
+
+.test-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
 .studio-shell.test-hero {
   height: auto;
   min-height: 100vh;
   min-height: 100dvh;
+  /* Clears the fixed bar. */
+  padding-top: var(--nav-height);
   overflow: visible;
 }
 
@@ -5376,13 +5461,12 @@ a {
   align-items: center;
   gap: 32px;
   min-height: 100%;
-  padding: 24px 24px 24px 48px;
+  padding: 24px 48px;
   overflow: visible;
 }
 
 .test-hero-left {
   display: flex;
-  height: 100%;
   flex-direction: column;
   justify-content: center;
   gap: 56px;
@@ -5406,18 +5490,10 @@ a {
 
 .test-hero-right {
   display: flex;
-  height: 100%;
   min-height: 0;
   flex-direction: column;
-  gap: 68px;
-  padding: 24px 0 32px;
-}
-
-.test-hero-topnav {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 32px;
+  justify-content: center;
+  padding: 0;
 }
 
 .test-hero-nav {
@@ -5431,6 +5507,7 @@ a {
 .test-hero-nav button {
   position: relative;
   appearance: none;
+  -webkit-appearance: none;
   border: 0;
   background: transparent;
   color: inherit;
@@ -5438,6 +5515,15 @@ a {
   font: inherit;
   padding: 0 0 6px;
   transition: color 160ms ease;
+}
+
+.test-hero-nav .test-topbar-work {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
 }
 
 .test-hero-nav button::after {
@@ -5495,18 +5581,23 @@ a {
 }
 
 .test-hero-gallery {
+  position: relative;
   display: flex;
   min-height: 0;
-  flex: 1;
+  flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
   gap: 18px;
 }
 
 .test-hero-rail-row {
+  position: absolute;
+  top: calc(100% + 18px);
+  left: 50%;
   display: flex;
   align-items: center;
   gap: 14px;
+  transform: translateX(-50%);
 }
 
 .test-hero-gallery-label {
@@ -5526,8 +5617,8 @@ a {
 .test-hero-stack {
   position: relative;
   display: flex;
-  width: 100%;
-  max-width: min(1320px, max(320px, (100dvh - 150px) * 2.4));
+  width: clamp(320px, 62vw, calc((100dvh - 150px) * 2.4));
+  max-width: 100%;
   height: var(--stack-height, auto);
   flex-direction: column;
   overflow: hidden;
@@ -5655,9 +5746,9 @@ a {
   position: absolute;
   top: 3%;
   bottom: 3%;
-  left: calc(88% + 18px);
+  left: calc(88% + 16px);
   z-index: 1;
-  width: 18%;
+  width: 12%;
   appearance: none;
   border-width: 4px;
   border-radius: 18px;
@@ -5752,43 +5843,79 @@ a {
 }
 
 @media (max-width: 1100px) {
-  /* The hero has no fixed topbar of its own — its nav is inline — so the
-     shared .studio-shell offset that clears .studio-sidebar is dead space. */
+  /* A shorter bar at phone widths; everything that clears it reads --nav-height,
+     so this is the only place the number changes. */
+  .test-home {
+    --nav-height: 60px;
+  }
+
   .test-home .studio-shell.test-hero {
-    padding-top: 0;
+    /* Overrides the shared .studio-shell `padding-top: 48px`, which is sized for
+       the homepage's .studio-sidebar, not this bar. */
+    padding-top: var(--nav-height);
+    /* dvh re-resolves as the mobile URL bar retracts, which made the hero visibly
+       grow mid-scroll. svh is the stable smallest-viewport value. */
+    min-height: 100vh;
+    min-height: 100svh;
   }
 
   .test-hero-main {
     position: relative;
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
-    gap: 28px;
-    padding: 24px 20px 32px;
+    /* Rows are auto inside a full-height section, so the default stretch
+       inflated them and pushed the headline miles off the gallery card.
+       Centring keeps the rows at their natural size; on a screen too short for
+       the content the section just grows (it is min-height only), so there is
+       no free space to centre and nothing overflows above the fixed bar. */
+    align-content: center;
+    gap: 18px;
+    padding: 12px 20px 32px;
   }
 
   .test-hero-left {
-    gap: 24px;
+    gap: 18px;
     height: auto;
+    justify-content: flex-start;
   }
 
   .test-hero-right {
     height: auto;
+    gap: 18px;
     padding: 0;
   }
 
-  /* Pin the nav opposite the brand so the hero reads as a normal mobile
-     header instead of stacking a nav row under the headline. */
-  .test-hero-topnav {
-    position: absolute;
-    top: 24px;
-    right: 20px;
-    gap: 14px;
-    justify-content: flex-end;
+  /* The bar keeps its brand at every width; only the text links and the CTA
+     give way to the hamburger. */
+  .test-topbar {
+    gap: 16px;
+    padding: 0 20px;
   }
 
-  /* The hamburger covers these below 1100px. */
-  .test-hero-nav {
+  .test-topbar-brand {
+    --brand-logo-size: 32px;
+  }
+
+  .test-topbar-brand .brand-name {
+    font-size: 13px;
+    font-weight: 760;
+  }
+
+  .test-hero-nav,
+  .test-hero-cta {
     display: none;
+  }
+
+  /* Stops the desktop `flex: 1` from stretching the gallery and reopening the
+     gap under the headline. */
+  .test-hero-gallery {
+    flex: 0 0 auto;
+    gap: 12px;
+  }
+
+  .test-hero-rail-row {
+    position: static;
+    transform: none;
   }
 
   /* Undo the homepage carousel's `.work-card { display: none }` — the testhome
@@ -5819,38 +5946,10 @@ a {
     border-radius: 20px;
   }
 
-  /* The shared mobile rule inverts the logo for the dark .studio-sidebar on
-     the homepage; the testhome hero is light, so it rendered white on white. */
-  .test-hero-left .brand-mark-default {
-    filter: none;
-  }
-
-  /* Restore navigation in the lower scene. .morph-chrome is hidden below
-     1100px and .lower-topbar is hidden on every .scene-viewport, which left
-     the page with no nav at all once the hero scrolled away. Sticky rather
-     than fixed, so it takes over exactly when the hero's own nav scrolls off
-     instead of hovering over the hero and eating its taps. */
-  .scene-viewport.test-home .lower-topbar {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    display: flex;
-    height: 48px;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 18px;
-  }
-
-  /* The bar now occupies real space, so the offset that reserved room for it
-     would just leave a gap.
-
-     The scene-viewport overlap also has to go here. It pulls .lower-scene up
-     into the hero by --transition-overlap, which is harmless while the topbar
-     is display:none (every other scene-viewport), but with the bar restored it
-     dragged the bar ~90px above the fold — so the hero shipped with its own
-     hamburger *and* the sticky bar on screen at the same time. */
+  /* The negative --transition-overlap has to go: it pulls .lower-scene up into
+     the hero, which would drag the transition statement under the fixed bar. */
   .test-home .lower-scene {
-    padding-top: 0;
+    padding-top: var(--nav-height);
     margin-top: 0;
   }
 }
@@ -5860,11 +5959,6 @@ a {
     font-size: clamp(28px, 8vw, 40px);
   }
 
-  /* Contact lives in the hamburger menu at this width; the CTA would crowd
-     the brand. */
-  .test-hero-cta {
-    display: none;
-  }
 }
 
 /* The two-column lead/ending layout only reads correctly when the lead fits on
@@ -5878,10 +5972,11 @@ a {
    is coming without competing for the read. Only size, colour and tracking
    animate; nothing reflows away from its own line. */
 @media (max-width: 1100px) {
-  /* Three highlight states share this travel, so 180vh left the last ending
-     arriving as the section was already unsticking. */
+  /* The three endings split (height - 100vh) of travel between them, so this is
+     ~75vh of scrolling per line. At 250vh each line turned over in half a
+     screen, which read as flicker rather than as three separate claims. */
   .test-home .transition-statement {
-    min-height: 250vh;
+    min-height: 325vh;
   }
 
   .test-home .transition-copy {
