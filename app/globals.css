@@ -3179,10 +3179,11 @@ a {
 
 .result-score-description {
   position: absolute;
-  left: var(--desc-x, 50%);
-  top: var(--desc-y, 0);
+  left: var(--desc-left, auto);
+  right: var(--desc-right, auto);
+  top: var(--desc-y, 50%);
   z-index: 2;
-  width: min(320px, 86vw);
+  width: min(300px, 82vw);
   margin: 0;
   color: var(--paper);
   font-size: clamp(19px, 1.85vw, 27px);
@@ -3192,7 +3193,7 @@ a {
   opacity: 0;
   pointer-events: none;
   text-align: left;
-  transform: translate3d(-50%, calc(-100% - 4px), 0);
+  transform: translate3d(0, calc(-50% + 8px), 0);
   transition:
     opacity 220ms ease,
     transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -3201,7 +3202,7 @@ a {
 .result-score-grid.has-active-description .result-score-description,
 .score-grid.has-active-description .result-score-description {
   opacity: 1;
-  transform: translate3d(-50%, calc(-100% - 18px), 0);
+  transform: translate3d(0, -50%, 0);
 }
 
 .studio-score-description {
@@ -4949,7 +4950,8 @@ a {
     padding-bottom: 72px;
   }
 
-  .result-score-grid.has-active-description .result-score-description {
+  .result-score-grid.has-active-description .result-score-description,
+  .score-grid.has-active-description .result-score-description {
     transform: translate3d(-50%, 0, 0);
   }
 

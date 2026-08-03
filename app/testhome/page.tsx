@@ -99,7 +99,7 @@ function clamp(value: number, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
 }
 
-const DESCRIPTION_WIDTH = 320;
+const DESCRIPTION_OVERLAP = 18;
 
 function descriptionPositionStyle(grid: HTMLElement | null, target: HTMLElement): CSSProperties {
   if (!grid) {
@@ -107,15 +107,23 @@ function descriptionPositionStyle(grid: HTMLElement | null, target: HTMLElement)
   }
 
   const gridRect = grid.getBoundingClientRect();
-  const itemRect = target.getBoundingClientRect();
-  const half = DESCRIPTION_WIDTH / 2;
-  const rawCenter = itemRect.left + itemRect.width / 2 - gridRect.left;
-  const maxCenter = Math.max(half, gridRect.width - half);
+  const ringEl = target.querySelector(".score-ring") ?? target;
+  const ringRect = ringEl.getBoundingClientRect();
+  const centerY = ringRect.top - gridRect.top + ringRect.height / 2;
+  const ringCenterX = ringRect.left - gridRect.left + ringRect.width / 2;
+  const isRightHalf = ringCenterX > gridRect.width / 2;
 
-  return {
-    "--desc-x": `${Math.min(Math.max(rawCenter, half), maxCenter)}px`,
-    "--desc-y": `${itemRect.top - gridRect.top}px`,
-  } as CSSProperties;
+  const style: Record<string, string> = {
+    "--desc-y": `${centerY}px`,
+  };
+
+  if (isRightHalf) {
+    style["--desc-right"] = `${Math.max(0, gridRect.width - (ringRect.left - gridRect.left) - DESCRIPTION_OVERLAP)}px`;
+  } else {
+    style["--desc-left"] = `${Math.max(0, ringRect.right - gridRect.left - DESCRIPTION_OVERLAP)}px`;
+  }
+
+  return style as CSSProperties;
 }
 
 function getScoreColor(score: number) {
