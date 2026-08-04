@@ -27,8 +27,10 @@ the public site and marked `noindex`.
 
 ### Setup
 
-`npm run build` runs pending migrations first, so a deploy migrates itself using the
-`DATABASE_URL` already configured in the host. Nothing has to be run by hand.
+Pending migrations are applied by `postinstall`, so a deploy migrates itself using the
+`DATABASE_URL` already configured in the host. Nothing has to be run by hand. It hangs
+off install rather than build because Vercel detects this project as a framework and
+runs its own build, skipping the `build` script in `package.json`.
 
 To create the first admin account, set these in the hosting environment and redeploy:
 

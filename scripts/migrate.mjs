@@ -1,13 +1,16 @@
 /**
  * Applies pending migrations, and optionally seeds a studio admin account.
  *
- * This runs as part of `npm run build`, so a Vercel deploy migrates itself
- * using the DATABASE_URL already configured there — no connection string ever
- * has to be copied to a laptop. Drizzle records applied migrations in
- * __drizzle_migrations, so re-running on every deploy is a no-op once current.
+ * Wired to `postinstall` rather than only `build`: Vercel detects this project
+ * as a framework and runs its own `vercel build`, bypassing the build script in
+ * package.json entirely, but it always runs the install step. A deploy
+ * therefore migrates itself using the DATABASE_URL already configured there —
+ * no connection string ever has to be copied to a laptop. Drizzle records
+ * applied migrations in __drizzle_migrations, so running on every install is a
+ * no-op once current.
  *
  * When DATABASE_URL is absent (CI, a fresh clone, the test suite) it skips
- * rather than failing, so builds that never touch the database still work.
+ * rather than failing, so installs that never touch the database still work.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { neon } from "@neondatabase/serverless";
