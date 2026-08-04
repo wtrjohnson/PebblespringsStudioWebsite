@@ -6,12 +6,9 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
-import { randomBytes } from "node:crypto";
 import { stdin, stdout } from "node:process";
 import { neon } from "@neondatabase/serverless";
-
-const PBKDF2_ITERATIONS = 210_000;
-const PBKDF2_KEY_BYTES = 32;
+import { createPasswordSalt, hashPassword } from "./adminPassword.mjs";
 
 function getEnvValue(name) {
   if (process.env[name]) {
@@ -30,30 +27,21 @@ function getEnvValue(name) {
   return line?.slice(prefix.length).trim().replace(/^["']|["']$/g, "") ?? "";
 }
 
-async function hashPassword(password, salt) {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, [
-    "deriveBits",
-  ]);
-  const bits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt: encoder.encode(salt),
-      iterations: PBKDF2_ITERATIONS,
-      hash: "SHA-256",
-    },
-    key,
-    PBKDF2_KEY_BYTES * 8,
-  );
-
-  return Buffer.from(bits).toString("hex");
-}
-
 async function main() {
   const databaseUrl = getEnvValue("DATABASE_URL");
 
   if (!databaseUrl) {
     console.error("DATABASE_URL is not set. Add it to .env.local or the environment.");
+    process.exitCode = 1;
+    return;
+  }
+
+  if (databaseUrl === "[SENSITIVE]") {
+    console.error(
+      'DATABASE_URL is the literal "[SENSITIVE]" placeholder that `vercel env pull` writes\n' +
+        "for variables marked sensitive. Unmark it in the Vercel dashboard, or paste the real\n" +
+        "Neon connection string into .env.local.",
+    );
     process.exitCode = 1;
     return;
   }
@@ -77,7 +65,7 @@ async function main() {
       return;
     }
 
-    const salt = randomBytes(16).toString("hex");
+    const salt = createPasswordSalt();
     const passwordHash = await hashPassword(password, salt);
     const sql = neon(databaseUrl);
 

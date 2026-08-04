@@ -23,14 +23,36 @@ export function normalizeAdminEmail(email: unknown) {
   return typeof email === "string" ? email.trim().toLowerCase() : "";
 }
 
+/**
+ * Prefers a dedicated STUDIO_AUTH_SECRET. When one is not configured it derives
+ * a distinct key from PORTAL_AUTH_SECRET instead of failing, so deploying the
+ * admin panel does not require provisioning a new secret by hand.
+ *
+ * The label makes the derived key unusable against portal sessions even though
+ * both descend from the same root, so an admin token can never validate as a
+ * client token or vice versa. Setting STUDIO_AUTH_SECRET explicitly is still
+ * stronger — it means a leaked portal secret does not imply a leaked admin one
+ * — and doing so invalidates existing admin sessions, which is the intended
+ * effect of rotating a key.
+ */
+const STUDIO_KEY_LABEL = "pebblesprings:studio-admin-session:v1";
+
 function getStudioAuthSecret() {
   const secret = process.env.STUDIO_AUTH_SECRET;
 
-  if (!secret || secret.length < 32) {
-    throw new Error("STUDIO_AUTH_SECRET must be at least 32 characters.");
+  if (secret && secret.length >= 32) {
+    return secret;
   }
 
-  return secret;
+  const portalSecret = process.env.PORTAL_AUTH_SECRET;
+
+  if (portalSecret && portalSecret.length >= 32) {
+    return createHmac("sha256", portalSecret).update(STUDIO_KEY_LABEL).digest("hex");
+  }
+
+  throw new Error(
+    "Set STUDIO_AUTH_SECRET (32+ characters), or PORTAL_AUTH_SECRET to derive it from.",
+  );
 }
 
 function hashSessionToken(token: string) {
