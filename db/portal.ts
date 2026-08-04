@@ -1,8 +1,8 @@
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "./index";
 import { portalApprovals, portalProjects, portalUpdates } from "./schema";
 
-export const portalPhases = ["Discovery", "Design", "Build", "Launch", "Live"];
+export { portalPhases } from "./portalPhases";
 
 export type PortalApproval = typeof portalApprovals.$inferSelect;
 export type PortalProject = typeof portalProjects.$inferSelect;
@@ -14,92 +14,6 @@ export type PortalData = {
   updates: PortalUpdate[];
 };
 
-export const fallbackPortalData: PortalData = {
-  project: {
-    id: 1,
-    clientId: 1,
-    slug: "furrow-strategies",
-    clientName: "Furrow Strategies",
-    projectName: "Furrow Strategies",
-    currentPhase: "Design",
-    nextUp:
-      "After homepage approval, I'll design the services page and start preparing the preview.",
-    createdAt: "2026-07-22 00:00:00",
-    updatedAt: "2026-07-31 00:00:00",
-  },
-  approvals: [
-    {
-      id: 1,
-      projectId: 1,
-      title: "Homepage design",
-      phase: "Design",
-      note:
-        "I'd love your eye on the overall direction: headline tone, page flow, and whether this feels like Furrow.",
-      previewLabel: "Homepage preview",
-      previewHref: "/portal",
-      requestedBy: "2026-07-31",
-      helpfulBy: "2026-08-02",
-      status: "needs_review",
-      respondedAt: null,
-      createdAt: "2026-07-31 00:00:00",
-    },
-  ],
-  updates: [
-    {
-      id: 1,
-      projectId: 1,
-      phase: "Design",
-      title: "Homepage design is ready",
-      body:
-        "I finished the first pass of the homepage and tightened the opening message around your core services. The main thing I'd love your eye on is whether the tone feels like you.",
-      status: "in_progress",
-      actionLabel: "Review homepage design",
-      actionHref: "/portal/approvals",
-      publishedAt: "2026-07-31",
-      createdAt: "2026-07-31 00:00:00",
-    },
-    {
-      id: 2,
-      projectId: 1,
-      phase: "Design",
-      title: "The first direction is coming together",
-      body:
-        "I pulled the visual references into a calmer design direction: direct headlines, confident spacing, and a little more editorial rhythm than the current site. The goal is to make Furrow feel sharp without making it feel cold.",
-      status: "in_progress",
-      actionLabel: null,
-      actionHref: null,
-      publishedAt: "2026-07-29",
-      createdAt: "2026-07-29 00:00:00",
-    },
-    {
-      id: 3,
-      projectId: 1,
-      phase: "Discovery",
-      title: "Direction is set",
-      body:
-        "Thanks for sending the examples and notes. The strongest thread is clarity: fewer claims, stronger hierarchy, and more confidence in the core offer. I'll use that as the foundation for the first homepage pass.",
-      status: "completed",
-      actionLabel: null,
-      actionHref: null,
-      publishedAt: "2026-07-26",
-      createdAt: "2026-07-26 00:00:00",
-    },
-    {
-      id: 4,
-      projectId: 1,
-      phase: "Discovery",
-      title: "Kickoff notes are in place",
-      body:
-        "I organized the kickoff notes and marked the biggest decisions: the site should feel more established, the services need to be easier to scan, and the homepage should lead with the problem Furrow helps clients solve.",
-      status: "completed",
-      actionLabel: "View kickoff notes",
-      actionHref: "/portal",
-      publishedAt: "2026-07-22",
-      createdAt: "2026-07-22 00:00:00",
-    },
-  ],
-};
-
 export function formatPortalDate(value: string) {
   return new Intl.DateTimeFormat("en", {
     month: "long",
@@ -107,35 +21,75 @@ export function formatPortalDate(value: string) {
   }).format(new Date(`${value}T00:00:00`));
 }
 
-export async function getPortalDataForClient(clientId: number) {
-  try {
-    const db = await getDb();
-    const [project] = await db
+/**
+ * Open items first. `asc(status)` would sort alphabetically — approved,
+ * changes_requested, needs_review — which buries the one thing the client
+ * actually has to act on.
+ */
+const approvalPriority = sql`CASE WHEN ${portalApprovals.status} = 'needs_review' THEN 0 ELSE 1 END`;
+
+async function getPublishedContent(projectId: number) {
+  const db = await getDb();
+
+  return Promise.all([
+    db
       .select()
-      .from(portalProjects)
-      .where(eq(portalProjects.clientId, clientId))
-      .orderBy(asc(portalProjects.id))
-      .limit(1);
+      .from(portalUpdates)
+      .where(and(
+        eq(portalUpdates.projectId, projectId),
+        eq(portalUpdates.visibility, "published"),
+        isNull(portalUpdates.deletedAt),
+      ))
+      .orderBy(desc(portalUpdates.publishedAt), desc(portalUpdates.id)),
+    db
+      .select()
+      .from(portalApprovals)
+      .where(and(
+        eq(portalApprovals.projectId, projectId),
+        eq(portalApprovals.visibility, "published"),
+        isNull(portalApprovals.deletedAt),
+      ))
+      .orderBy(approvalPriority, desc(portalApprovals.createdAt)),
+  ]);
+}
 
-    if (!project) {
-      return fallbackPortalData;
-    }
+/**
+ * Returns null when the client has no active project. Errors are deliberately
+ * allowed to propagate: a swallowed failure here previously rendered another
+ * client's hardcoded content, which is worse than an error page.
+ */
+export async function getPortalDataForClient(clientId: number): Promise<PortalData | null> {
+  const db = await getDb();
+  const [project] = await db
+    .select()
+    .from(portalProjects)
+    .where(and(eq(portalProjects.clientId, clientId), eq(portalProjects.status, "active")))
+    .orderBy(asc(portalProjects.id))
+    .limit(1);
 
-    const [updates, approvals] = await Promise.all([
-      db
-        .select()
-        .from(portalUpdates)
-        .where(eq(portalUpdates.projectId, project.id))
-        .orderBy(desc(portalUpdates.publishedAt), desc(portalUpdates.id)),
-      db
-        .select()
-        .from(portalApprovals)
-        .where(eq(portalApprovals.projectId, project.id))
-        .orderBy(asc(portalApprovals.status), desc(portalApprovals.createdAt)),
-    ]);
-
-    return { project, updates, approvals };
-  } catch {
-    return fallbackPortalData;
+  if (!project) {
+    return null;
   }
+
+  const [updates, approvals] = await getPublishedContent(project.id);
+
+  return { project, updates, approvals };
+}
+
+/** Same published view, addressed by project — used by the admin preview. */
+export async function getPortalDataForProject(projectId: number): Promise<PortalData | null> {
+  const db = await getDb();
+  const [project] = await db
+    .select()
+    .from(portalProjects)
+    .where(eq(portalProjects.id, projectId))
+    .limit(1);
+
+  if (!project) {
+    return null;
+  }
+
+  const [updates, approvals] = await getPublishedContent(project.id);
+
+  return { project, updates, approvals };
 }

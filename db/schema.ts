@@ -42,6 +42,9 @@ export const portalProjects = pgTable("portal_projects", {
   projectName: text("project_name").notNull(),
   currentPhase: text("current_phase").notNull(),
   nextUp: text("next_up").notNull().default(""),
+  status: text("status", { enum: ["active", "completed", "archived"] })
+    .notNull()
+    .default("active"),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
 });
@@ -57,6 +60,8 @@ export const portalUpdates = pgTable("portal_updates", {
   status: text("status", { enum: ["in_progress", "completed"] }).notNull().default("completed"),
   actionLabel: text("action_label"),
   actionHref: text("action_href"),
+  visibility: text("visibility", { enum: ["draft", "published"] }).notNull().default("draft"),
+  deletedAt: text("deleted_at"),
   publishedAt: text("published_at").notNull(),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
 });
@@ -76,7 +81,12 @@ export const portalApprovals = pgTable("portal_approvals", {
   status: text("status", { enum: ["needs_review", "approved", "changes_requested"] })
     .notNull()
     .default("needs_review"),
+  visibility: text("visibility", { enum: ["draft", "published"] }).notNull().default("draft"),
+  deletedAt: text("deleted_at"),
   respondedAt: text("responded_at"),
+  responseNote: text("response_note"),
+  responseReply: text("response_reply"),
+  repliedAt: text("replied_at"),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
 });
 
@@ -108,6 +118,35 @@ export const portalSessions = pgTable("portal_sessions", {
 });
 
 export const portalLoginAttempts = pgTable("portal_login_attempts", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
+});
+
+export const studioAdmins = pgTable("studio_admins", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  name: text("name").notNull().default(""),
+  passwordHash: text("password_hash").notNull(),
+  passwordSalt: text("password_salt").notNull(),
+  status: text("status", { enum: ["active", "disabled"] }).notNull().default("active"),
+  lastLoginAt: text("last_login_at"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
+});
+
+export const studioAdminSessions = pgTable("studio_admin_sessions", {
+  id: serial("id").primaryKey(),
+  adminId: integer("admin_id")
+    .notNull()
+    .references(() => studioAdmins.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: text("expires_at").notNull(),
+  revokedAt: text("revoked_at"),
+  lastSeenAt: text("last_seen_at"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
+});
+
+export const studioAdminLoginAttempts = pgTable("studio_admin_login_attempts", {
   id: serial("id").primaryKey(),
   email: text("email").notNull(),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),

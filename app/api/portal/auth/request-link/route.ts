@@ -10,21 +10,30 @@ type RequestLinkPayload = {
   email?: unknown;
 };
 
-function getRequiredEnv(name: string) {
-  const value = process.env[name];
+/**
+ * Email delivery is optional infrastructure. When Resend is not configured the
+ * link is logged instead of thrown away — the portal stays usable in local
+ * development and a missing key can never take the login endpoint down.
+ */
+async function sendMagicLinkEmail(email: string, token: string) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.PORTAL_FROM_EMAIL;
+  const appUrl = (process.env.APP_URL ?? "").replace(/\/$/, "");
 
-  if (!value) {
-    throw new Error(`${name} is required.`);
+  if (!appUrl) {
+    console.warn("APP_URL is not set; unable to build a portal login link.");
+    return;
   }
 
-  return value;
-}
-
-async function sendMagicLinkEmail(email: string, token: string) {
-  const apiKey = getRequiredEnv("RESEND_API_KEY");
-  const from = getRequiredEnv("PORTAL_FROM_EMAIL");
-  const appUrl = getRequiredEnv("APP_URL").replace(/\/$/, "");
   const loginUrl = `${appUrl}/portal/auth/callback?token=${encodeURIComponent(token)}`;
+
+  if (!apiKey || !from) {
+    console.warn(
+      `Resend is not configured; portal login link for ${email} was not emailed: ${loginUrl}`,
+    );
+    return;
+  }
+
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
