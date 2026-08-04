@@ -2,41 +2,28 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ApprovalActions } from "./ApprovalActions.tsx";
+import { formatPortalDate, type PortalApproval } from "../usePortalData.ts";
 
 type ApprovalStatus = "needs_review" | "approved" | "changes_requested";
 
-type ApprovalItem = {
-  id: number;
-  title: string;
-  phase: string;
-  note: string;
-  previewLabel: string;
-  previewHref: string;
-  requestedBy: string;
-  helpfulBy: string;
-  status: ApprovalStatus;
-  respondedAt: string | null;
-};
+type ApprovalItem = PortalApproval;
 
 type ApprovalUpdate = {
   id: number;
   status: ApprovalStatus;
   respondedAt: string | null;
+  responseNote: string | null;
 };
-
-function formatPortalDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    month: "long",
-    day: "numeric",
-  }).format(new Date(`${value}T00:00:00`));
-}
 
 export function ApprovalsBoard({
   approvals,
   clientName,
+  readOnly = false,
 }: {
   approvals: ApprovalItem[];
   clientName: string;
+  /** Set by the admin preview: show the client's controls, but do not let Will act as them. */
+  readOnly?: boolean;
 }) {
   const [items, setItems] = useState(approvals);
   const [collapsingIds, setCollapsingIds] = useState<number[]>([]);
@@ -71,6 +58,7 @@ export function ApprovalsBoard({
                   ...item,
                   status: approval.status,
                   respondedAt: approval.respondedAt,
+                  responseNote: approval.responseNote,
                 }
               : item,
           ),
@@ -129,9 +117,11 @@ export function ApprovalsBoard({
                 <div className="portal-approval-footer">
                   <span>Helpful by {formatPortalDate(approval.helpfulBy)}</span>
                   <ApprovalActions
+                    readOnly={readOnly}
                     approvalId={approval.id}
                     initialStatus={approval.status}
                     previewHref={approval.previewHref}
+                    previewLabel={approval.previewLabel}
                     onStatusChange={moveApprovalToClosed}
                   />
                 </div>
@@ -142,21 +132,37 @@ export function ApprovalsBoard({
       ) : null}
 
       <section className="portal-approved-list" aria-labelledby="approved-title">
-        <h2 id="approved-title">Approved</h2>
+        <h2 id="approved-title">Decided</h2>
         <div>
           {closedApprovals.map((item) => (
             <article className="portal-approved-row" key={item.id}>
-              <p>{item.title}</p>
-              <span>
-                {item.status === "approved" ? "Approved" : "Changes requested"}{" "}
-                {item.respondedAt ? formatPortalDate(item.respondedAt.slice(0, 10)) : ""}
-              </span>
+              <div className="portal-approved-head">
+                <p>{item.title}</p>
+                <span>
+                  {item.status === "approved" ? "Approved" : "Changes requested"}{" "}
+                  {item.respondedAt ? formatPortalDate(item.respondedAt.slice(0, 10)) : ""}
+                </span>
+              </div>
+
+              {item.responseNote ? (
+                <p className="portal-approved-note">
+                  <strong>You wrote:</strong> {item.responseNote}
+                </p>
+              ) : null}
+
+              {item.responseReply ? (
+                <p className="portal-approved-reply">
+                  <strong>Will replied:</strong> {item.responseReply}
+                </p>
+              ) : null}
             </article>
           ))}
           {closedApprovals.length === 0 ? (
             <article className="portal-approved-row">
-              <p>No completed approvals yet</p>
-              <span>Pending review</span>
+              <div className="portal-approved-head">
+                <p>No completed approvals yet</p>
+                <span>Pending review</span>
+              </div>
             </article>
           ) : null}
         </div>

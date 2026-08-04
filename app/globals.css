@@ -148,6 +148,32 @@ a {
   letter-spacing: 0;
 }
 
+.portal-notice {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 8px;
+  display: grid;
+  gap: 14px;
+}
+
+.portal-notice h1 {
+  margin: 0;
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 760;
+  line-height: 1.05;
+}
+
+.portal-notice p {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.portal-notice a {
+  text-decoration: underline;
+}
+
 .portal-login-error {
   margin: 0;
   padding: 14px 16px;
@@ -457,6 +483,15 @@ a {
   font-size: 20px;
   font-weight: 850;
   line-height: 1;
+}
+
+.portal-message p {
+  margin: 0;
+}
+
+/* Blank lines in an update body become real paragraphs; keep them apart. */
+.portal-message p + p {
+  margin-top: 0.7em;
 }
 
 .portal-message {
@@ -1012,13 +1047,62 @@ a {
   border-top: 2px solid #d6d6d6;
 }
 
+.portal-change-form {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 460px);
+}
+
+.portal-change-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.portal-change-form label span {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.portal-change-form textarea {
+  min-height: 104px;
+  padding: 10px 12px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: inherit;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.portal-change-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.portal-change-error {
+  margin: 0;
+  color: #b3300f;
+  font-size: 14px;
+  font-weight: 650;
+}
+
 .portal-approved-row {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0;
+  min-height: 62px;
+  align-content: center;
+  border-bottom: 2px solid #d6d6d6;
+}
+
+.portal-approved-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 24px;
   align-items: center;
-  min-height: 62px;
-  border-bottom: 2px solid #d6d6d6;
 }
 
 .portal-approved-row p {
@@ -1026,6 +1110,24 @@ a {
   font-size: 24px;
   font-weight: 650;
   line-height: 1.1;
+}
+
+/* A change request and Will's reply are conversation, not headline copy. */
+.portal-approved-note,
+.portal-approved-reply {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.portal-approved-row p.portal-approved-note,
+.portal-approved-row p.portal-approved-reply {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.portal-approved-reply {
+  color: #575757;
 }
 
 .portal-approved-row span {

@@ -1,0 +1,586 @@
+/*
+ * Admin panel — "Ledger / Precision Instrument".
+ *
+ * Deliberately scoped to `.admin-*` and imported only by the admin layout. The
+ * client portal keeps its own softer language; this is the back office and it
+ * reads like a payroll ledger: hard rules, monospace, dense, no ornament.
+ *
+ * House rules for anything added here: 1px solid borders, no shadows, no
+ * gradients, radius <= 2px, no pill buttons, no hover animation, no sans-serif
+ * in headings. Sections are separated by rule lines, not by whitespace.
+ */
+
+/*
+ * The root layout renders the marketing footer on every route. It has no place
+ * under a ledger, so the admin pages suppress it rather than restructuring the
+ * shared layout.
+ */
+body:has(.admin-root) .global-footer {
+  display: none;
+}
+
+.admin-root {
+  --admin-ink: #15110e;
+  --admin-paper: #f7f5f0;
+  --admin-panel: #fffdf8;
+  --admin-rule: #15110e;
+  --admin-rule-soft: #c9c4b8;
+  --admin-muted: #6b6a64;
+  --admin-forest: #1f4033;
+  --admin-forest-soft: #e6ece7;
+  --admin-signal: #a33718;
+  --admin-signal-soft: #f6e7e1;
+  --admin-tan: #e8e2d4;
+
+  --admin-row-height: 30px;
+  --admin-gutter: 10px;
+
+  --admin-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+
+  min-height: 100vh;
+  padding: 0 0 64px;
+  background: var(--admin-paper);
+  color: var(--admin-ink);
+  font-family: var(--admin-mono);
+  font-size: 13px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+.admin-root *,
+.admin-root *::before,
+.admin-root *::after {
+  box-sizing: border-box;
+}
+
+.admin-root h1,
+.admin-root h2,
+.admin-root h3 {
+  margin: 0;
+  font-family: var(--admin-mono);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.admin-root p {
+  margin: 0;
+}
+
+.admin-root a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.admin-shell {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ---------------------------------------------------------------- masthead */
+
+.admin-masthead {
+  border-bottom: 2px solid var(--admin-rule);
+  background: var(--admin-panel);
+}
+
+.admin-masthead-inner {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 16px;
+  min-height: 44px;
+}
+
+.admin-mark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 0;
+  border-right: 1px solid var(--admin-rule);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.admin-mark img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.admin-masthead-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--admin-muted);
+}
+
+.admin-masthead-meta form {
+  display: contents;
+}
+
+/* -------------------------------------------------------------------- nav */
+
+.admin-nav {
+  display: flex;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--admin-rule);
+  background: var(--admin-tan);
+}
+
+.admin-nav a {
+  padding: 7px 14px;
+  border-right: 1px solid var(--admin-rule);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.admin-nav a[aria-current="page"] {
+  background: var(--admin-ink);
+  color: var(--admin-paper);
+}
+
+/* Section-level tabs sit inside the shell rather than spanning the masthead. */
+.admin-shell > .admin-nav {
+  margin-top: 20px;
+  border: 1px solid var(--admin-rule);
+}
+
+/* ---------------------------------------------------------------- sections */
+
+.admin-section {
+  margin-top: 20px;
+  border: 1px solid var(--admin-rule);
+  background: var(--admin-panel);
+}
+
+.admin-section-bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--admin-rule);
+  background: var(--admin-ink);
+  color: var(--admin-paper);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.admin-section-bar span {
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
+
+.admin-subbar {
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--admin-rule);
+  background: var(--admin-tan);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+/* --------------------------------------------------------- key-value rows */
+
+.admin-kv {
+  display: grid;
+  grid-template-columns: minmax(120px, 190px) 1fr;
+}
+
+.admin-kv > dt,
+.admin-kv > dd {
+  margin: 0;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--admin-rule-soft);
+  min-height: var(--admin-row-height);
+}
+
+.admin-kv > dt {
+  border-right: 1px solid var(--admin-rule-soft);
+  color: var(--admin-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  padding-top: 7px;
+}
+
+.admin-kv > dd:last-of-type,
+.admin-kv > dt:nth-last-of-type(1) {
+  border-bottom: 0;
+}
+
+/* ------------------------------------------------------------ ledger table */
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.admin-table th {
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--admin-rule);
+  background: var(--admin-tan);
+  color: var(--admin-muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--admin-rule-soft);
+  vertical-align: top;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-table .is-numeric,
+.admin-table th.is-numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.admin-table .is-quiet {
+  color: var(--admin-muted);
+}
+
+.admin-table tr.is-total td {
+  border-top: 2px solid var(--admin-rule);
+  border-bottom: 0;
+  font-weight: 600;
+  background: var(--admin-tan);
+}
+
+.admin-empty-row td {
+  padding: 10px;
+  color: var(--admin-muted);
+}
+
+/* ------------------------------------------------------------ summary block */
+
+.admin-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  border-top: 2px solid var(--admin-rule);
+}
+
+.admin-summary-cell {
+  padding: 8px 10px;
+  border-right: 1px solid var(--admin-rule-soft);
+}
+
+.admin-summary-cell:last-child {
+  border-right: 0;
+}
+
+.admin-summary-cell dt {
+  color: var(--admin-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+}
+
+.admin-summary-cell dd {
+  margin: 2px 0 0;
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------- flags */
+
+.admin-flag {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid var(--admin-rule);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.admin-flag.is-open {
+  border-color: var(--admin-signal);
+  background: var(--admin-signal-soft);
+  color: var(--admin-signal);
+}
+
+.admin-flag.is-done {
+  border-color: var(--admin-forest);
+  background: var(--admin-forest-soft);
+  color: var(--admin-forest);
+}
+
+.admin-flag.is-draft {
+  border-style: dashed;
+  color: var(--admin-muted);
+}
+
+/* ------------------------------------------------------------------- forms */
+
+.admin-form {
+  padding: 10px;
+}
+
+.admin-field {
+  display: block;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--admin-rule-soft);
+}
+
+.admin-field:last-of-type {
+  border-bottom: 0;
+}
+
+.admin-field > span {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--admin-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+}
+
+.admin-field > em {
+  display: block;
+  margin-top: 3px;
+  color: var(--admin-muted);
+  font-size: 10px;
+  font-style: normal;
+}
+
+.admin-root input:not(.admin-preview-frame *),
+.admin-root select:not(.admin-preview-frame *),
+.admin-root textarea:not(.admin-preview-frame *) {
+  width: 100%;
+  padding: 5px 7px;
+  border: 1px solid var(--admin-rule);
+  border-radius: 0;
+  background: var(--admin-paper);
+  color: var(--admin-ink);
+  font-family: var(--admin-mono);
+  font-size: 13px;
+}
+
+.admin-root textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.admin-root input:focus-visible,
+.admin-root select:focus-visible,
+.admin-root textarea:focus-visible,
+.admin-root button:focus-visible,
+.admin-root a:focus-visible {
+  outline: 2px solid var(--admin-forest);
+  outline-offset: 1px;
+}
+
+.admin-field-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0 12px;
+}
+
+/* Pull the action bar out to the panel edges when it sits inside a padded form. */
+.admin-form .admin-actions {
+  margin: 8px -10px -10px;
+}
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--admin-rule);
+  background: var(--admin-tan);
+}
+
+.admin-root button:not(.admin-preview-frame *),
+.admin-button {
+  padding: 5px 12px;
+  border: 1px solid var(--admin-rule);
+  border-radius: 0;
+  background: var(--admin-panel);
+  color: var(--admin-ink);
+  font-family: var(--admin-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  cursor: pointer;
+}
+
+.admin-root button.is-primary,
+.admin-button.is-primary {
+  background: var(--admin-forest);
+  border-color: var(--admin-forest);
+  color: var(--admin-paper);
+}
+
+.admin-root button.is-danger,
+.admin-button.is-danger {
+  border-color: var(--admin-signal);
+  color: var(--admin-signal);
+}
+
+.admin-root button.is-plain {
+  border-color: transparent;
+  background: transparent;
+  text-decoration: underline;
+}
+
+.admin-root button[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admin-note {
+  padding: 8px 10px;
+  border-top: 1px solid var(--admin-rule-soft);
+  color: var(--admin-muted);
+  font-size: 11px;
+}
+
+.admin-error {
+  padding: 6px 10px;
+  border: 1px solid var(--admin-signal);
+  background: var(--admin-signal-soft);
+  color: var(--admin-signal);
+  font-size: 11px;
+}
+
+.admin-quote {
+  padding: 6px 10px;
+  border-left: 2px solid var(--admin-rule);
+  background: var(--admin-paper);
+  white-space: pre-wrap;
+}
+
+/* ------------------------------------------------------ view-as-client frame */
+
+/*
+ * The preview renders real portal components inside the ledger. Everything
+ * below this boundary belongs to the portal's visual language, so the admin
+ * typography and control styling are handed back.
+ */
+.admin-preview-frame {
+  margin-top: 20px;
+  border: 1px solid var(--admin-rule);
+  background: var(--white, #fff);
+  font-family: "Manrope", Arial, Helvetica, sans-serif;
+  font-variant-numeric: normal;
+  color: var(--admin-ink);
+}
+
+.admin-preview-frame > .portal-page + .portal-page {
+  border-top: 1px solid var(--admin-rule-soft);
+}
+
+/* Inert by construction — the client's own controls are theirs to press. */
+.admin-preview-frame button {
+  cursor: default;
+}
+
+/* -------------------------------------------------------------- login page */
+
+.admin-login {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+.admin-login-panel {
+  width: 100%;
+  max-width: 360px;
+  border: 1px solid var(--admin-rule);
+  background: var(--admin-panel);
+}
+
+/* ---------------------------------------------------------------- mobile */
+
+@media (max-width: 640px) {
+  .admin-root {
+    font-size: 14px;
+  }
+
+  .admin-kv {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-kv > dt {
+    border-right: 0;
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  /*
+   * Tables reflow to stacked records rather than scrolling sideways: on a
+   * phone the ledger reads as a run of labeled rows, keeping the label:value
+   * logic intact instead of clipping columns.
+   */
+  .admin-table thead {
+    display: none;
+  }
+
+  .admin-table tr {
+    display: block;
+    border-bottom: 1px solid var(--admin-rule);
+  }
+
+  .admin-table tr:last-child {
+    border-bottom: 0;
+  }
+
+  .admin-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--admin-rule-soft);
+    text-align: left;
+  }
+
+  .admin-table td.is-numeric {
+    text-align: left;
+  }
+
+  .admin-table td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--admin-muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+  }
+
+  .admin-table tr.is-total td {
+    border-top: 2px solid var(--admin-rule);
+  }
+}
