@@ -39,6 +39,7 @@ test("server-renders the Pebblesprings Studio portfolio", async () => {
   assert.match(html, /enjoy using/);
   assert.match(html, /Slipstream Advocacy/);
   assert.match(html, /Albert Rozin/);
+  assert.match(html, /See how we work/);
   assert.match(html, /SlipstreamAdvocacy-Expanded-Hero\.png/);
   assert.match(html, /AlbertRozin-Portfolio-2\.png/);
   assert.match(html, /mailto:will@pebblesprings\.co/);
@@ -47,9 +48,9 @@ test("server-renders the Pebblesprings Studio portfolio", async () => {
 });
 
 test("removes starter preview files and includes the social card", async () => {
-  const [page, heroGallery, expandedLayouts, portfolioData, layout] = await Promise.all([
+  const [page, css, expandedLayouts, portfolioData, layout] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/TestHeroGallery.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/expandedCardLayouts.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/portfolioData.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
@@ -58,7 +59,6 @@ test("removes starter preview files and includes the social card", async () => {
     access(new URL("../public/pebblesprings-sign.jpeg", import.meta.url)),
   ]);
 
-  assert.match(page, /<TestHeroGallery \/>/);
   assert.match(page, /We build websites that/);
   assert.match(page, /load fast and stay fast/);
   assert.match(page, /you can actually update yourself/);
@@ -72,14 +72,8 @@ test("removes starter preview files and includes the social card", async () => {
   assert.doesNotMatch(page, /onWheel=\{handleSceneWheel\}/);
   assert.doesNotMatch(page, /onTouchStart=\{handleSceneTouchStart\}/);
   assert.doesNotMatch(page, /onTouchEnd=\{handleSceneTouchEnd\}/);
-  assert.match(heroGallery, /carouselProjects/);
-  assert.match(heroGallery, /expandedCardLayouts/);
-  assert.match(heroGallery, /ROTATION_MS/);
-  assert.match(heroGallery, /HOVER_INTENT_MS/);
-  assert.match(heroGallery, /aria-current/);
-  assert.match(heroGallery, /View case study/);
-  assert.match(heroGallery, /expandProject/);
-  assert.match(heroGallery, /collapseProject/);
+  assert.match(css, /TreeFarmHero\.png/);
+  assert.match(css, /WhiteBorder\.svg/);
   assert.match(expandedLayouts, /SlipstreamAdvocacy-Expanded-Hero\.png/);
   assert.match(expandedLayouts, /AlbertRozin-Expanded-Hero\.png/);
   assert.match(expandedLayouts, /RJohnsonPiano-Expanded-Secondary\.png/);
@@ -93,7 +87,9 @@ test("removes starter preview files and includes the social card", async () => {
   assert.match(portfolioData, /SlipstreamAdvocacy-Portfolio-1\.png/);
   assert.match(portfolioData, /RJohnsonPiano-Portfolio-3\.png/);
   assert.match(portfolioData, /CPS-Portfolio-4\.png/);
-  assert.match(page, /className="studio-shell test-hero scene-panel"/);
+  assert.match(page, /className="studio-shell illustrated-hero scene-panel"/);
+  assert.match(page, /<PortfolioCarousel \/>/);
+  assert.doesNotMatch(page, /TestHeroGallery/);
   assert.match(layout, /title:\s*"Pebblesprings Studio"/);
   assert.match(layout, /url:\s*"\/og\.png"/);
   assert.doesNotMatch(page, /SkeletonPreview/);

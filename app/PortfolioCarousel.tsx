@@ -501,7 +501,7 @@ export function PortfolioCarousel() {
   return (
     <section
       className={`portfolio-stage${isPaused ? " is-paused" : ""}${isCarouselLocked ? " is-expanded" : ""}`}
-      id="top"
+      id="portfolio-carousel"
       aria-label="Pebblesprings Studio portfolio"
     >
       <div className="mobile-hero-copy" aria-hidden="true">

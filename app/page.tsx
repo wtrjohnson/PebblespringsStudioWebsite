@@ -11,11 +11,11 @@ import {
   useState,
 } from "react";
 import { MobileNavMenu, type MobileNavItem } from "./MobileNavMenu.tsx";
+import { PortfolioCarousel } from "./PortfolioCarousel.tsx";
 import { animateScroll } from "./scrollMotion.ts";
 import { usePortfolioScores } from "./usePortfolioScores.ts";
-import { TestHeroGallery } from "./TestHeroGallery.tsx";
 
-type Scene = "landing" | "about" | "performance";
+type Scene = "landing" | "portfolio" | "about" | "performance";
 type ScoreKey = "speed" | "reach" | "reliability" | "visibility";
 
 type ScoreMetric = {
@@ -237,9 +237,6 @@ function TransitionStatement() {
             </p>
           ))}
         </div>
-        <span className="transition-divider" aria-hidden="true">
-          <img src="/WavyBorder.svg" alt="" />
-        </span>
       </div>
     </section>
   );
@@ -948,26 +945,10 @@ const HowWeWorkSection = forwardRef<HTMLElement, {
   );
 });
 
-const brandRevealColumns = 10;
-const brandRevealRows = 4;
-const blankBrandRevealTiles = new Set(["0-0", "0-3", "1-3", "8-3", "9-0", "9-3"]);
-const brandRevealTiles = Array.from({ length: brandRevealColumns * brandRevealRows }, (_, tileIndex) => {
-  const column = tileIndex % brandRevealColumns;
-  const row = Math.floor(tileIndex / brandRevealColumns);
-  const clusterDelay = column * 72 + row * 18;
-  const irregularDelay = [44, 0, 92, 28, 126, 62, 164, 100, 204, 142][column] + [0, 38, 14, 56][row];
-
-  return {
-    column,
-    row,
-    delay: 2000 + clusterDelay + irregularDelay,
-    isBlank: blankBrandRevealTiles.has(`${column}-${row}`),
-  };
-});
-
 export default function Home() {
   const landingSceneRef = useRef<HTMLElement | null>(null);
   const lowerSceneRef = useRef<HTMLElement | null>(null);
+  const portfolioSceneRef = useRef<HTMLElement | null>(null);
   const performanceSceneRef = useRef<HTMLDivElement | null>(null);
   const howWorkSceneRef = useRef<HTMLElement | null>(null);
   const [chromeProgress, setChromeProgress] = useState(0);
@@ -1043,6 +1024,7 @@ export default function Home() {
     window.requestAnimationFrame(() => {
       const sceneTargets = {
         about: howWorkSceneRef.current,
+        portfolio: portfolioSceneRef.current,
         performance: performanceSceneRef.current,
       };
 
@@ -1060,6 +1042,10 @@ export default function Home() {
 
   const heroNavItems = useMemo<MobileNavItem[]>(() => [
     {
+      label: "Portfolio",
+      onSelect: () => moveToScene("portfolio"),
+    },
+    {
       label: "Performance",
       onSelect: () => moveToScene("performance"),
     },
@@ -1075,8 +1061,8 @@ export default function Home() {
 
   const stickyNavItems = useMemo<MobileNavItem[]>(() => [
     {
-      label: "Work",
-      onSelect: () => moveToScene("landing"),
+      label: "Portfolio",
+      onSelect: () => moveToScene("portfolio"),
     },
     {
       label: "Performance",
@@ -1117,11 +1103,11 @@ export default function Home() {
         <nav className="morph-nav" aria-label="Primary navigation">
           <button
             type="button"
-            onClick={() => moveToScene("landing")}
+            onClick={() => moveToScene("portfolio")}
             tabIndex={isCompactChrome ? 0 : -1}
             className="morph-work-link"
           >
-            Work
+            Portfolio
           </button>
           <button
             type="button"
@@ -1141,93 +1127,44 @@ export default function Home() {
             type="button"
             onClick={() => window.location.assign("/contact")}
             tabIndex={isCompactChrome ? 0 : -1}
+            className="morph-project"
           >
-            Contact
+            Start a Project
           </button>
         </nav>
       </div>
       <div className="scene-stack">
         <section
-          className="studio-shell test-hero scene-panel"
+          className="studio-shell illustrated-hero scene-panel"
+          id="home"
           aria-label="Pebblesprings Studio home"
           ref={landingSceneRef}
         >
-          <div className="test-hero-main">
-            <div className="test-hero-left">
-              <a
-                className="brand"
-                href="#top"
-                aria-label="Pebblesprings Studio home"
-                onClick={(event) => {
-                  event.preventDefault();
-                  moveToScene("landing");
-                }}
-              >
-                <span className="brand-mark" aria-hidden="true">
-                  <img
-                    className="brand-mark-image brand-mark-default"
-                    src="/PSLogo.png"
-                    alt=""
-                    width="98"
-                    height="98"
-                  />
-                  <span className="brand-mark-hover" aria-hidden="true">
-                    <img
-                      className="brand-mark-image brand-mark-hover-image"
-                      src="/Logo%20Hover.png"
-                      alt=""
-                      width="98"
-                      height="98"
-                    />
-                    <span className="brand-reveal-grid" aria-hidden="true">
-                      {brandRevealTiles.map((tile) => (
-                        <span
-                          className={`brand-reveal-tile${tile.isBlank ? " is-blank" : ""}`}
-                          key={`${tile.column}-${tile.row}`}
-                          style={{
-                            "--tile-column": tile.column,
-                            "--tile-row": tile.row,
-                            "--tile-delay": `${tile.delay}ms`,
-                          } as CSSProperties}
-                        />
-                      ))}
-                    </span>
-                  </span>
+          <img className="illustrated-hero-border" src="/WhiteBorder.svg" alt="" aria-hidden="true" />
+          <div className="illustrated-hero-inner">
+            <header className="illustrated-hero-header">
+              <a className="illustrated-brand" href="#home" aria-label="Pebblesprings Studio home">
+                <span className="illustrated-brand-mark" aria-hidden="true">
+                  <img src="/PSLogo.png" alt="" width="98" height="98" />
                 </span>
-                <span className="brand-name">
-                  Pebblesprings
-                  <br />
-                  Studio
-                </span>
+                <span>Pebblesprings<br />Studio</span>
               </a>
-
-              <h1 className="test-hero-headline">
-                <span className="test-hero-headline-accent">We build websites</span>
-                <span>people actually</span>
-                <span>enjoy using.</span>
-              </h1>
-            </div>
-
-            <div className="test-hero-right">
-              <div className="test-hero-topnav">
-                <nav className="test-hero-nav" aria-label="Primary navigation">
-                  <button type="button" onClick={heroNavItems[0].onSelect}>
-                    Performance
-                  </button>
-                  <button type="button" onClick={heroNavItems[1].onSelect}>
-                    Priorities
-                  </button>
-                </nav>
-                <button
-                  className="test-hero-cta"
-                  onClick={() => window.location.assign("/contact")}
-                  type="button"
-                >
+              <nav className="illustrated-hero-nav" aria-label="Primary navigation">
+                <button type="button" onClick={heroNavItems[0].onSelect}>Portfolio</button>
+                <button type="button" onClick={heroNavItems[1].onSelect}>Performance</button>
+                <button type="button" onClick={heroNavItems[2].onSelect}>Priorities</button>
+                <button className="illustrated-hero-project" type="button" onClick={() => window.location.assign("/contact")}>
                   Start a Project
                 </button>
-              </div>
+              </nav>
+              <MobileNavMenu items={heroNavItems} />
+            </header>
 
-              <TestHeroGallery />
+            <div className="illustrated-hero-copy">
+              <h1>We build websites<br />people actually<br />enjoy using.</h1>
+              <button className="illustrated-hero-work" type="button" onClick={() => moveToScene("about")}>
+                See how we work
+              </button>
             </div>
           </div>
         </section>
@@ -1253,7 +1190,7 @@ export default function Home() {
             </button>
             <nav className="lower-nav" aria-label="Primary navigation">
               <button type="button" onClick={stickyNavItems[0].onSelect}>
-                Work
+                Portfolio
               </button>
               <button type="button" onClick={stickyNavItems[1].onSelect}>
                 Performance
@@ -1268,6 +1205,13 @@ export default function Home() {
             <MobileNavMenu items={mobileNavItems} />
           </header>
           <TransitionStatement />
+          <section className="portfolio-section" id="portfolio" aria-label="Selected portfolio pieces" ref={portfolioSceneRef}>
+            <div className="portfolio-section-heading">
+              <p>Selected work.</p>
+              <h2>Websites with sturdy bones, clear stories, and room to grow.</h2>
+            </div>
+            <PortfolioCarousel />
+          </section>
           <div className="lower-content">
             <div id="performance" ref={performanceSceneRef}>
               <PerformanceSection onStartFix={startFixConversation} />
