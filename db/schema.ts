@@ -40,6 +40,13 @@ export const portalProjects = pgTable("portal_projects", {
   slug: text("slug").notNull().unique(),
   clientName: text("client_name").notNull(),
   projectName: text("project_name").notNull(),
+  siteUrl: text("site_url").notNull().default(""),
+  projectStart: text("project_start"),
+  contractAmount: integer("contract_amount").notNull().default(0),
+  contractType: text("contract_type").notNull().default("No Subscription"),
+  paymentStatus: text("payment_status", { enum: ["pending", "partial", "complete"] })
+    .notNull()
+    .default("pending"),
   currentPhase: text("current_phase").notNull(),
   nextUp: text("next_up").notNull().default(""),
   status: text("status", { enum: ["active", "completed", "archived"] })

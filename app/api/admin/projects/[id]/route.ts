@@ -9,6 +9,11 @@ const PROJECT_STATUSES = ["active", "completed", "archived"] as const;
 type ProjectPayload = {
   projectName?: unknown;
   slug?: unknown;
+  siteUrl?: unknown;
+  projectStart?: unknown;
+  contractAmount?: unknown;
+  contractType?: unknown;
+  paymentStatus?: unknown;
   currentPhase?: unknown;
   nextUp?: unknown;
   status?: unknown;
@@ -38,6 +43,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     const projectName = readString(payload.projectName);
     const slug = readString(payload.slug);
+    const siteUrl = readString(payload.siteUrl);
+    const projectStart = readString(payload.projectStart);
+    const contractType = readString(payload.contractType);
+    const contractAmount = typeof payload.contractAmount === "number" ? payload.contractAmount : Number(payload.contractAmount);
+    const paymentStatus = readString(payload.paymentStatus);
     const currentPhase = readString(payload.currentPhase);
     const nextUp = readString(payload.nextUp);
     const status = readString(payload.status);
@@ -61,12 +71,33 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return Response.json({ error: "Status is invalid." }, { status: 400 });
     }
 
+    if (siteUrl && !/^https?:\/\//i.test(siteUrl)) {
+      return Response.json({ error: "Website URL must begin with http:// or https://." }, { status: 400 });
+    }
+
+    if (!Number.isInteger(contractAmount) || contractAmount < 0) {
+      return Response.json({ error: "Contract amount must be a whole dollar amount." }, { status: 400 });
+    }
+
+    if (!contractType) {
+      return Response.json({ error: "Contract type is required." }, { status: 400 });
+    }
+
+    if (!paymentStatus || !["pending", "partial", "complete"].includes(paymentStatus)) {
+      return Response.json({ error: "Payment status is invalid." }, { status: 400 });
+    }
+
     const db = await getDb();
     const [project] = await db
       .update(portalProjects)
       .set({
         projectName,
         slug,
+        siteUrl: siteUrl ?? "",
+        projectStart: projectStart || null,
+        contractAmount,
+        contractType,
+        paymentStatus: paymentStatus as "pending" | "partial" | "complete",
         currentPhase,
         nextUp: nextUp ?? "",
         status: status as (typeof PROJECT_STATUSES)[number],

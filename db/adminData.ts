@@ -1,6 +1,14 @@
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { getDb } from "./index";
-import { portalApprovals, portalClients, portalProjects, portalUpdates } from "./schema";
+import { portalApprovals, portalClients, portalProjects, portalUpdates, portfolioScores } from "./schema";
+
+const KNOWN_SITE_URLS: Record<string, string> = {
+  "albert-rozin": "https://albertrozin.com",
+  "r-johnson-piano": "https://rjohnsonpiano.com",
+  "slipstream-advocacy": "https://slipstreamadvocacy.com",
+  "clear-policy-strategies": "https://clearpolicystrategies.com",
+  "pebblesprings-studio": "https://pebblesprings.co",
+};
 
 export const STALE_UPDATE_DAYS = 14;
 
@@ -9,12 +17,28 @@ export type LedgerLine = {
   clientName: string;
   projectId: number | null;
   projectName: string | null;
+  slug: string | null;
+  siteUrl: string;
+  projectStart: string | null;
+  contractAmount: number;
+  contractType: string;
+  paymentStatus: "pending" | "partial" | "complete";
   currentPhase: string | null;
+  nextUp: string;
+  status: "active" | "completed" | "archived";
+  updatedAt: string;
   openApprovals: number;
   awaitingReply: number;
   drafts: number;
   lastPublishedAt: string | null;
   daysSincePublished: number | null;
+  scores: {
+    speed: number | null;
+    reach: number | null;
+    reliability: number | null;
+    visibility: number | null;
+    updatedAt: string | null;
+  };
 };
 
 export type AttentionItem = {
@@ -73,6 +97,11 @@ export async function getAdminProject(projectId: number) {
       clientName: portalClients.name,
       projectName: portalProjects.projectName,
       slug: portalProjects.slug,
+      siteUrl: portalProjects.siteUrl,
+      projectStart: portalProjects.projectStart,
+      contractAmount: portalProjects.contractAmount,
+      contractType: portalProjects.contractType,
+      paymentStatus: portalProjects.paymentStatus,
       currentPhase: portalProjects.currentPhase,
       nextUp: portalProjects.nextUp,
       status: portalProjects.status,
@@ -119,7 +148,16 @@ export async function getLedgerOverview(): Promise<LedgerOverview> {
         clientName: portalClients.name,
         projectId: portalProjects.id,
         projectName: portalProjects.projectName,
+        slug: portalProjects.slug,
+        siteUrl: portalProjects.siteUrl,
+        projectStart: portalProjects.projectStart,
+        contractAmount: portalProjects.contractAmount,
+        contractType: portalProjects.contractType,
+        paymentStatus: portalProjects.paymentStatus,
         currentPhase: portalProjects.currentPhase,
+        nextUp: portalProjects.nextUp,
+        status: portalProjects.status,
+        updatedAt: portalProjects.updatedAt,
       })
       .from(portalClients)
       .leftJoin(
@@ -151,6 +189,9 @@ export async function getLedgerOverview(): Promise<LedgerOverview> {
       .from(portalUpdates)
       .where(isNull(portalUpdates.deletedAt)),
   ]);
+
+  const scoreRows = await db.select().from(portfolioScores);
+  const scoresByUrl = new Map(scoreRows.map((row) => [row.url, row]));
 
   const clientNameByProject = new Map<number, string>();
 
@@ -216,7 +257,16 @@ export async function getLedgerOverview(): Promise<LedgerOverview> {
       clientName: row.clientName,
       projectId,
       projectName: row.projectName,
+      slug: row.slug,
+      siteUrl: row.siteUrl || (row.slug ? KNOWN_SITE_URLS[row.slug] ?? "" : ""),
+      projectStart: row.projectStart,
+      contractAmount: row.contractAmount ?? 0,
+      contractType: row.contractType ?? "No Subscription",
+      paymentStatus: row.paymentStatus ?? "pending",
       currentPhase: row.currentPhase,
+      nextUp: row.nextUp ?? "",
+      status: row.status ?? "active",
+      updatedAt: row.updatedAt ?? "",
       openApprovals: projectApprovals.filter(
         (approval) => approval.visibility === "published" && approval.status === "needs_review",
       ).length,
@@ -229,6 +279,18 @@ export async function getLedgerOverview(): Promise<LedgerOverview> {
         projectUpdates.filter((update) => update.visibility === "draft").length,
       lastPublishedAt,
       daysSincePublished: daysSince(lastPublishedAt),
+      scores: (() => {
+        const url = row.siteUrl || (row.slug ? KNOWN_SITE_URLS[row.slug] ?? "" : "");
+        const score = scoresByUrl.get(url);
+
+        return {
+          speed: score?.speedScore ?? null,
+          reach: score?.reachScore ?? null,
+          reliability: score?.reliabilityScore ?? null,
+          visibility: score?.visibilityScore ?? null,
+          updatedAt: score?.updatedAt ?? null,
+        };
+      })(),
     };
   });
 

@@ -43,6 +43,13 @@
       "when": 1785850045043,
       "tag": "0005_colorful_black_cat",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785978938103,
+      "tag": "0006_admin_client_console",
+      "breakpoints": true
     }
   ]
 }

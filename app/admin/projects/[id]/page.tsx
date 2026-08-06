@@ -57,6 +57,11 @@ export default async function AdminProjectPage({
           initial={{
             projectName: project.projectName,
             slug: project.slug,
+            siteUrl: project.siteUrl,
+            projectStart: project.projectStart ?? "",
+            contractAmount: project.contractAmount,
+            contractType: project.contractType,
+            paymentStatus: project.paymentStatus,
             currentPhase: project.currentPhase,
             nextUp: project.nextUp,
             status: project.status,
