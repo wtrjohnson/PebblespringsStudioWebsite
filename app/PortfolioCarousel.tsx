@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, FocusEvent, MouseEvent, PointerEvent } from "react";
 import type { PortfolioProject } from "./portfolioData.ts";
-import { carouselProjects } from "./portfolioData.ts";
+import { carouselProjects as allPortfolioProjects } from "./portfolioData.ts";
 import { animateScroll } from "./scrollMotion.ts";
 
 const ROTATION_MS = 5200;
@@ -15,6 +15,8 @@ type ExpandedProjectState = {
   projectId: string | null;
   activationMode: "pointer" | "keyboard" | "mobile" | null;
 };
+
+const carouselProjects = allPortfolioProjects.filter((project) => !project.isProposition);
 
 export function PortfolioCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);

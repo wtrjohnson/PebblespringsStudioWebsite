@@ -4493,7 +4493,7 @@ a {
   }
 
   .portfolio-scroll {
-    height: min(58dvh, 520px);
+    height: min(58svh, 520px);
     overflow-x: hidden;
     overflow-y: hidden;
   }
@@ -4648,7 +4648,7 @@ a {
     display: block;
     width: 100%;
     min-height: 0;
-    max-height: min(42dvh, 390px);
+    max-height: min(42svh, 390px);
     align-self: stretch;
     border-radius: clamp(18px, 5vw, 34px);
     object-fit: contain;
@@ -4865,7 +4865,7 @@ a {
   }
 
   .portfolio-scroll {
-    height: min(58dvh, 492px);
+    height: min(58svh, 492px);
     overflow-x: hidden;
     overflow-y: hidden;
   }
@@ -5626,7 +5626,7 @@ a {
 .studio-shell.illustrated-hero {
   min-height: 100vh;
   min-height: 100dvh;
-  overflow: hidden;
+  overflow: visible;
   border: 0;
   background: #0878cf url("/TreeFarmHero.png") center center / cover no-repeat;
   color: #ffffff;
@@ -5634,15 +5634,16 @@ a {
 
 .illustrated-hero-border {
   position: absolute;
-  left: 0;
+  left: 50%;
   bottom: 0;
   z-index: 2;
   display: block;
-  width: 100%;
-  height: clamp(34px, 6vw, 86px);
+  width: 117vw;
+  height: 93px;
   max-width: none;
   object-fit: fill;
   pointer-events: none;
+  transform: translateX(-50%);
 }
 
 .illustrated-hero-inner {
@@ -6532,5 +6533,25 @@ a {
   .portfolio-section-heading {
     padding-right: 20px;
     padding-left: 20px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .illustrated-hero-border {
+    width: 101vw;
+    height: 88px;
+    transform: translate(-50%, 32px);
+  }
+
+  .scene-viewport:not(.is-compact-chrome) .lower-topbar {
+    display: none;
+  }
+
+  .scene-viewport.is-compact-chrome .illustrated-hero-header .mobile-nav-menu {
+    display: none;
+  }
+
+  .scene-viewport.is-compact-chrome .lower-topbar {
+    display: flex;
   }
 }

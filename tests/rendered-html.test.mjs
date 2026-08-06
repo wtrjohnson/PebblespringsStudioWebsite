@@ -73,7 +73,7 @@ test("removes starter preview files and includes the social card", async () => {
   assert.doesNotMatch(page, /onTouchStart=\{handleSceneTouchStart\}/);
   assert.doesNotMatch(page, /onTouchEnd=\{handleSceneTouchEnd\}/);
   assert.match(css, /TreeFarmHero\.png/);
-  assert.match(css, /WhiteBorder\.svg/);
+  assert.match(page, /WhiteBorder\.svg/);
   assert.match(expandedLayouts, /SlipstreamAdvocacy-Expanded-Hero\.png/);
   assert.match(expandedLayouts, /AlbertRozin-Expanded-Hero\.png/);
   assert.match(expandedLayouts, /RJohnsonPiano-Expanded-Secondary\.png/);
