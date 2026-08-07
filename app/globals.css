@@ -2506,8 +2506,8 @@ a {
   position: relative;
   overflow: visible;
   margin-top: clamp(46px, 3.8vw, 62px);
-  background: var(--foreground);
-  color: var(--paper);
+  background: #0878cf;
+  color: #ffffff;
 }
 
 .global-footer-wave {
@@ -2519,9 +2519,9 @@ a {
   max-width: none;
   height: clamp(46px, 3.8vw, 62px);
   margin-left: -50vw;
-  margin-left: -50dvw;
   object-fit: fill;
   object-position: center;
+  filter: brightness(0) saturate(100%) invert(39%) sepia(97%) saturate(1280%) hue-rotate(176deg) brightness(88%) contrast(96%);
   pointer-events: none;
 }
 

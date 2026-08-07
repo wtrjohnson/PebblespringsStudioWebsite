@@ -155,8 +155,8 @@ export function ApprovalsAdminBoard({
   initialApprovals: AdminApproval[];
 }) {
   const [approvals, setApprovals] = useState(initialApprovals);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [draft, setDraft] = useState<Draft>(() => blankDraft(currentPhase));
+  const [editingId, setEditingId] = useState<number | null>(() => initialApprovals[0]?.id ?? null);
+  const [draft, setDraft] = useState<Draft>(() => initialApprovals[0] ? toDraft(initialApprovals[0]) : blankDraft(currentPhase));
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const intentRef = useRef<Draft["visibility"]>("draft");
@@ -251,8 +251,8 @@ export function ApprovalsAdminBoard({
   const responded = approvals.filter((approval) => approval.respondedAt);
 
   return (
-    <>
-      <section className="admin-section" aria-labelledby="approvals-admin-title">
+    <div className="admin-approvals-board">
+      <section className="admin-section admin-approvals-list" aria-labelledby="approvals-admin-title">
         <h2 className="admin-section-bar" id="approvals-admin-title">
           Approvals
           <span>{openCount} out for review</span>
@@ -261,6 +261,7 @@ export function ApprovalsAdminBoard({
         <table className="admin-table">
           <thead>
             <tr>
+              <th scope="col" />
               <th scope="col">Requested</th>
               <th scope="col">Phase</th>
               <th scope="col">Title</th>
@@ -271,7 +272,10 @@ export function ApprovalsAdminBoard({
           </thead>
           <tbody>
             {approvals.map((approval) => (
-              <tr key={approval.id}>
+              <tr className={editingId === approval.id ? "is-selected" : undefined} key={approval.id}>
+                <td className="admin-approval-marker" data-label="" aria-hidden="true">
+                  <span className={approval.visibility === "draft" ? "is-draft" : undefined} />
+                </td>
                 <td className="is-numeric" data-label="Requested">
                   {approval.requestedBy}
                 </td>
@@ -311,14 +315,14 @@ export function ApprovalsAdminBoard({
             ))}
             {approvals.length === 0 ? (
               <tr className="admin-empty-row">
-                <td colSpan={6}>No approvals on this project yet.</td>
+                <td colSpan={7}>No approvals on this project yet.</td>
               </tr>
             ) : null}
           </tbody>
         </table>
       </section>
 
-      <section className="admin-section" aria-labelledby="responses-title">
+      <section className="admin-section admin-approvals-responses" aria-labelledby="responses-title">
         <h2 className="admin-section-bar" id="responses-title">
           Client Responses
           <span>{responded.length} on file</span>
@@ -355,7 +359,7 @@ export function ApprovalsAdminBoard({
         ) : null}
       </section>
 
-      <section className="admin-section" aria-labelledby="approval-editor-title">
+      <section className="admin-section admin-approvals-editor" aria-labelledby="approval-editor-title">
         <h2 className="admin-section-bar" id="approval-editor-title">
           {editingId ? `Edit Approval #${editingId}` : "New Approval Request"}
           <span>{editingId ? "Existing entry" : "Unsaved"}</span>
@@ -471,6 +475,6 @@ export function ApprovalsAdminBoard({
           </div>
         </form>
       </section>
-    </>
+    </div>
   );
 }

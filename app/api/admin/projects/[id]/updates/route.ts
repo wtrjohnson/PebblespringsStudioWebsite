@@ -1,5 +1,20 @@
 import { requireAdmin } from "../../../../../../db/adminAuth";
+import { getAdminUpdates } from "../../../../../../db/adminData";
 import { createUpdate, parseUpdateInput, projectExists } from "../../../../../../db/adminWrites";
+
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!(await requireAdmin(request))) {
+    return Response.json({ error: "authentication required" }, { status: 401 });
+  }
+
+  const projectId = Number((await params).id);
+
+  if (!Number.isInteger(projectId) || projectId < 1 || !(await projectExists(projectId))) {
+    return Response.json({ error: "project not found" }, { status: 404 });
+  }
+
+  return Response.json({ updates: await getAdminUpdates(projectId) });
+}
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {

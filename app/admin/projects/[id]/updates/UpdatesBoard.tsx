@@ -28,25 +28,11 @@ type Draft = {
 
 function today() {
   const now = new Date();
-
-  // Local calendar day, not UTC — publishedAt is what the client reads as "when
-  // Will posted this", so it should match the day Will is actually having.
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
-    now.getDate(),
-  ).padStart(2, "0")}`;
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
 function blankDraft(phase: string): Draft {
-  return {
-    phase,
-    title: "",
-    body: "",
-    status: "completed",
-    actionLabel: "",
-    actionHref: "",
-    publishedAt: today(),
-    visibility: "draft",
-  };
+  return { phase, title: "", body: "", status: "completed", actionLabel: "", actionHref: "", publishedAt: today(), visibility: "draft" };
 }
 
 function toDraft(update: AdminUpdate): Draft {
@@ -72,12 +58,10 @@ export function UpdatesBoard({
   initialUpdates: AdminUpdate[];
 }) {
   const [updates, setUpdates] = useState(initialUpdates);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [draft, setDraft] = useState<Draft>(() => blankDraft(currentPhase));
+  const [editingId, setEditingId] = useState<number | null>(initialUpdates[0]?.id ?? null);
+  const [draft, setDraft] = useState<Draft>(() => initialUpdates[0] ? toDraft(initialUpdates[0]) : blankDraft(currentPhase));
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  // Which button was pressed. A state value set in onClick would not be visible
-  // to the submit handler firing in the same event, so this rides a ref.
   const intentRef = useRef<Draft["visibility"]>("draft");
 
   function set<K extends keyof Draft>(key: K, value: Draft[K]) {
@@ -101,26 +85,14 @@ export function UpdatesBoard({
     const visibility = intentRef.current;
     setIsSaving(true);
     setError("");
-
-    const body = JSON.stringify({
-      ...draft,
-      visibility,
-      actionLabel: draft.actionLabel || null,
-      actionHref: draft.actionHref || null,
-    });
+    const body = JSON.stringify({ ...draft, visibility, actionLabel: draft.actionLabel || null, actionHref: draft.actionHref || null });
 
     try {
       const response = await fetch(
         editingId ? `/api/admin/updates/${editingId}` : `/api/admin/projects/${projectId}/updates`,
-        {
-          method: editingId ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body,
-        },
+        { method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body },
       );
-      const data = (await response.json().catch(() => null)) as
-        | { update?: AdminUpdate; error?: string }
-        | null;
+      const data = (await response.json().catch(() => null)) as { update?: AdminUpdate; error?: string } | null;
 
       if (!response.ok || !data?.update) {
         setError(data?.error ?? "Unable to save the update.");
@@ -129,12 +101,8 @@ export function UpdatesBoard({
       }
 
       const saved = data.update;
-      setUpdates((current) =>
-        editingId
-          ? current.map((item) => (item.id === saved.id ? saved : item))
-          : [saved, ...current],
-      );
-      startNew();
+      setUpdates((current) => editingId ? current.map((item) => item.id === saved.id ? saved : item) : [saved, ...current]);
+      startEdit(saved);
     } catch {
       setError("Unable to save the update.");
     }
@@ -143,199 +111,101 @@ export function UpdatesBoard({
   }
 
   async function remove(update: AdminUpdate) {
-    if (!window.confirm(`Remove "${update.title}" from the portal?`)) {
-      return;
-    }
-
+    if (!window.confirm(`Remove "${update.title}" from the portal?`)) return;
     const response = await fetch(`/api/admin/updates/${update.id}`, { method: "DELETE" });
-
     if (response.ok) {
       setUpdates((current) => current.filter((item) => item.id !== update.id));
-
-      if (editingId === update.id) {
-        startNew();
-      }
+      if (editingId === update.id) startNew();
     } else {
       setError("Unable to remove the update.");
     }
   }
 
   const publishedCount = updates.filter((update) => update.visibility === "published").length;
+  const timeline = updates.slice(0, 4);
 
   return (
     <>
-      <section className="admin-section" aria-labelledby="updates-title">
-        <h2 className="admin-section-bar" id="updates-title">
-          Updates
-          <span>
-            {publishedCount} live / {updates.length - publishedCount} draft
-          </span>
-        </h2>
+      <div className="admin-updates-content">
+        <div className="admin-updates-timeline" aria-label="Project update timeline">
+          {timeline.map((update) => (
+            <div
+              className={`admin-update-timeline-item${editingId === update.id ? " is-current" : ""}`}
+              key={update.id}
+              onClick={() => startEdit(update)}
+              onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); startEdit(update); } }}
+              role="button"
+              tabIndex={0}
+            >
+              <span className={`admin-update-dot${update.visibility === "draft" ? " is-draft" : ""}`} />
+              <span className="admin-update-timeline-copy">
+                <strong>{update.phase}</strong>
+                <span className="admin-update-timeline-title">{update.title}</span>
+                <span className="admin-update-item-controls" onClick={(event) => event.stopPropagation()}>
+                  <b>{update.visibility === "published" ? "LIVE" : "DRAFT"}</b>
+                  <button onClick={() => startEdit(update)} type="button">Edit</button>
+                  <button onClick={() => void remove(update)} type="button">Delete</button>
+                </span>
+              </span>
+            </div>
+          ))}
+          {updates.length > 4 ? <span className="admin-update-more">+{updates.length - 4}</span> : null}
+        </div>
 
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th scope="col">Date</th>
-              <th scope="col">Phase</th>
-              <th scope="col">Title</th>
-              <th scope="col">State</th>
-              <th scope="col" />
-            </tr>
-          </thead>
-          <tbody>
-            {updates.map((update) => (
-              <tr key={update.id}>
-                <td className="is-numeric" data-label="Date">
-                  {update.publishedAt}
-                </td>
-                <td data-label="Phase">{update.phase}</td>
-                <td data-label="Title">{update.title}</td>
-                <td data-label="State">
-                  <span
-                    className={`admin-flag ${
-                      update.visibility === "published" ? "is-done" : "is-draft"
-                    }`}
-                  >
-                    {update.visibility === "published" ? "Live" : "Draft"}
-                  </span>
-                </td>
-                <td data-label="">
-                  <button className="is-plain" onClick={() => startEdit(update)} type="button">
-                    Edit
-                  </button>{" "}
-                  <button className="is-plain" onClick={() => remove(update)} type="button">
-                    Remove
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {updates.length === 0 ? (
-              <tr className="admin-empty-row">
-                <td colSpan={5}>No updates on this project yet.</td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </section>
-
-      <section className="admin-section" aria-labelledby="update-editor-title">
-        <h2 className="admin-section-bar" id="update-editor-title">
-          {editingId ? `Edit Update #${editingId}` : "New Update"}
-          <span>{editingId ? "Existing entry" : "Unsaved"}</span>
-        </h2>
-
-        <form className="admin-form" onSubmit={save}>
-          <div className="admin-field-row">
-            <label className="admin-field">
-              <span>Published date</span>
-              <input
-                onChange={(event) => set("publishedAt", event.target.value)}
-                required
-                type="date"
-                value={draft.publishedAt}
-              />
+        <section className="admin-update-editor" aria-labelledby="update-editor-title">
+          <h2 id="update-editor-title">{editingId ? `Edit Update #${editingId}` : "New Update"}</h2>
+          <form className="admin-update-form" onSubmit={save}>
+            <label className="admin-update-field admin-update-date">
+              <span>Published Date</span>
+              <input onChange={(event) => set("publishedAt", event.target.value)} required type="date" value={draft.publishedAt} />
             </label>
-
-            <label className="admin-field">
+            <label className="admin-update-field admin-update-phase">
               <span>Phase</span>
               <select onChange={(event) => set("phase", event.target.value)} value={draft.phase}>
-                {portalPhases.map((phase) => (
-                  <option key={phase} value={phase}>
-                    {phase}
-                  </option>
-                ))}
+                {portalPhases.map((phase) => <option key={phase} value={phase}>{phase}</option>)}
               </select>
             </label>
-
-            <label className="admin-field">
-              <span>Phase state</span>
-              <select
-                onChange={(event) => set("status", event.target.value as Draft["status"])}
-                value={draft.status}
-              >
+            <label className="admin-update-field admin-update-status">
+              <span>Status</span>
+              <select onChange={(event) => set("status", event.target.value as Draft["status"])} value={draft.status}>
                 <option value="completed">Completed</option>
-                <option value="in_progress">In progress</option>
+                <option value="in_progress">In Progress</option>
               </select>
             </label>
-          </div>
-
-          <label className="admin-field">
-            <span>Title</span>
-            <input
-              onChange={(event) => set("title", event.target.value)}
-              required
-              type="text"
-              value={draft.title}
-            />
-          </label>
-
-          <label className="admin-field">
-            <span>Body</span>
-            <textarea
-              onChange={(event) => set("body", event.target.value)}
-              required
-              value={draft.body}
-            />
-            <em>Leave a blank line between paragraphs. They render as separate paragraphs.</em>
-          </label>
-
-          <div className="admin-field-row">
-            <label className="admin-field">
-              <span>Action label</span>
-              <input
-                onChange={(event) => set("actionLabel", event.target.value)}
-                placeholder="Review homepage design"
-                type="text"
-                value={draft.actionLabel}
-              />
+            <label className="admin-update-field admin-update-title-field">
+              <span>Title</span>
+              <input onChange={(event) => set("title", event.target.value)} required type="text" value={draft.title} />
             </label>
-
-            <label className="admin-field">
-              <span>Action link</span>
-              <input
-                onChange={(event) => set("actionHref", event.target.value)}
-                placeholder="/portal/approvals"
-                type="text"
-                value={draft.actionHref}
-              />
-              <em>Both or neither — a label with no link is a dead button.</em>
+            <label className="admin-update-field admin-update-body-field">
+              <span>Body</span>
+              <textarea onChange={(event) => set("body", event.target.value)} required value={draft.body} />
             </label>
-          </div>
+            <label className="admin-update-field admin-update-action-label">
+              <span>Action Label</span>
+              <input onChange={(event) => set("actionLabel", event.target.value)} placeholder="Review homepage design" type="text" value={draft.actionLabel} />
+            </label>
+            <label className="admin-update-field admin-update-action-link">
+              <span>Action Link</span>
+              <input onChange={(event) => set("actionHref", event.target.value)} placeholder="/portal/approvals" type="text" value={draft.actionHref} />
+            </label>
+            {error ? <p className="admin-error" role="alert">{error}</p> : null}
+            <div className="admin-update-actions">
+              <button disabled={isSaving} onClick={() => { intentRef.current = "draft"; }} type="submit">Save as draft</button>
+              <button className="is-primary" disabled={isSaving} onClick={() => { intentRef.current = "published"; }} type="submit">{editingId ? "Save and publish" : "Publish"}</button>
+              {editingId ? <button className="is-danger" onClick={() => { const update = updates.find((item) => item.id === editingId); if (update) void remove(update); }} type="button">Delete</button> : null}
+              {editingId ? <button className="is-plain" onClick={startNew} type="button">New</button> : null}
+            </div>
+          </form>
+        </section>
 
-          {error ? (
-            <p className="admin-error" role="alert">
-              {error}
-            </p>
-          ) : null}
+        <section className="admin-update-summary" aria-label="Update counts">
+          <strong>{publishedCount}</strong>
+          <span>Live</span>
+          <strong>{updates.length - publishedCount}</strong>
+          <span>Draft</span>
+        </section>
+      </div>
 
-          <div className="admin-actions">
-            <button
-              disabled={isSaving}
-              onClick={() => {
-                intentRef.current = "draft";
-              }}
-              type="submit"
-            >
-              Save as draft
-            </button>
-            <button
-              className="is-primary"
-              disabled={isSaving}
-              onClick={() => {
-                intentRef.current = "published";
-              }}
-              type="submit"
-            >
-              {editingId ? "Save and publish" : "Publish"}
-            </button>
-            {editingId ? (
-              <button className="is-plain" onClick={startNew} type="button">
-                Cancel
-              </button>
-            ) : null}
-          </div>
-        </form>
-      </section>
     </>
   );
 }
