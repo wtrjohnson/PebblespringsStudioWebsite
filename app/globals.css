@@ -2040,7 +2040,7 @@ a {
 }
 
 .expanded-project-preview {
-  --expanded-pad: clamp(38px, 4.2vw, 58px);
+  --expanded-pad: clamp(32px, 3.2vw, 46px);
   --expanded-radius: clamp(54px, 6vw, 82px);
   --preview-radius: clamp(24px, 4vw, 44px);
   position: absolute;
@@ -2150,7 +2150,7 @@ a {
 }
 
 .expanded-statement {
-  margin-top: clamp(34px, 5.4vw, 58px);
+  margin-top: clamp(26px, 3.4vw, 42px);
   color: var(--statement-color);
   font-size: clamp(24px, 2.6vw, 34px);
   font-weight: 430;
@@ -2308,13 +2308,13 @@ a {
 
 .expanded-layout-slipstream-editorial .expanded-statement {
   max-width: 240px;
-  margin-top: 34px;
+  margin-top: 26px;
   font-size: clamp(26px, 2.4vw, 30px);
   line-height: 1.1;
 }
 
 .expanded-layout-slipstream-editorial .media-homepage {
-  top: 21.1%;
+  top: 20%;
   right: 0.8%;
   width: 66.5%;
   aspect-ratio: 640 / 355;
@@ -2322,7 +2322,7 @@ a {
 }
 
 .expanded-layout-slipstream-editorial .media-interior {
-  top: 60.4%;
+  top: 58%;
   left: 6%;
   width: 40.8%;
   aspect-ratio: 393 / 218;
@@ -2339,7 +2339,7 @@ a {
 }
 
 .expanded-layout-slipstream-editorial .expanded-scope {
-  top: 74.5%;
+  top: 71%;
   left: 53%;
   max-width: 190px;
   font-size: clamp(21px, 2vw, 27px);
@@ -2367,7 +2367,7 @@ a {
 }
 
 .expanded-layout-stacked-showcase .expanded-media-item:first-child {
-  top: clamp(86px, 11vw, 124px);
+  top: clamp(68px, 9%, 100px);
   right: var(--expanded-pad);
   width: min(61%, 680px);
   aspect-ratio: 2690.53 / 1468.24;
@@ -2375,21 +2375,21 @@ a {
 
 .expanded-layout-stacked-showcase .expanded-media-item:nth-child(2) {
   left: var(--expanded-pad);
-  bottom: clamp(74px, 8.2vw, 104px);
+  bottom: clamp(58px, 7%, 82px);
   width: min(45%, 490px);
   aspect-ratio: 3024 / 1644;
 }
 
 .expanded-layout-stacked-showcase .expanded-media-item:nth-child(3) {
-  right: clamp(74px, 7vw, 110px);
-  bottom: clamp(114px, 11vw, 146px);
+  right: clamp(58px, 6%, 86px);
+  bottom: clamp(82px, 10%, 116px);
   width: min(16%, 170px);
   aspect-ratio: 1170 / 2204;
 }
 
 .expanded-layout-stacked-showcase .expanded-scope {
-  right: clamp(70px, 7vw, 110px);
-  bottom: clamp(76px, 8.2vw, 104px);
+  right: clamp(56px, 6%, 86px);
+  bottom: clamp(58px, 7%, 82px);
 }
 
 .expanded-layout-rene-piano {
@@ -2419,7 +2419,7 @@ a {
 }
 
 .expanded-layout-rene-piano .expanded-statement {
-  margin-top: clamp(76px, 8vw, 106px);
+  margin-top: clamp(44px, 5%, 64px);
   max-width: 370px;
 }
 
@@ -2428,7 +2428,7 @@ a {
 }
 
 .expanded-layout-rene-piano .expanded-media-item:first-child {
-  top: clamp(132px, 16vw, 178px);
+  top: clamp(98px, 14%, 142px);
   right: var(--expanded-pad);
   width: min(57%, 625px);
   aspect-ratio: 2690.53 / 1468.24;
@@ -2436,7 +2436,7 @@ a {
 
 .expanded-layout-rene-piano .expanded-media-item:nth-child(2) {
   left: var(--expanded-pad);
-  bottom: clamp(64px, 7.4vw, 94px);
+  bottom: clamp(52px, 7%, 78px);
   width: min(43%, 470px);
   aspect-ratio: 3024 / 1644;
   border: clamp(6px, 0.8vw, 10px) solid var(--expanded-background);
@@ -2444,8 +2444,8 @@ a {
 }
 
 .expanded-layout-rene-piano .expanded-scope {
-  right: clamp(70px, 7vw, 110px);
-  bottom: clamp(72px, 7.8vw, 100px);
+  right: clamp(56px, 6%, 86px);
+  bottom: clamp(58px, 7%, 82px);
   max-width: 270px;
 }
 
@@ -2471,7 +2471,7 @@ a {
 }
 
 .expanded-layout-albert-archive .media-homepage {
-  top: 25%;
+  top: 21%;
   right: 5.2%;
   width: 60%;
   aspect-ratio: 3024 / 1644;
@@ -2479,7 +2479,7 @@ a {
 
 .expanded-layout-albert-archive .media-interior {
   left: 6%;
-  bottom: 11.5%;
+  bottom: 9%;
   width: 43%;
   aspect-ratio: 3020 / 1642;
 }
@@ -2493,7 +2493,7 @@ a {
 
 .expanded-layout-albert-archive .expanded-scope {
   right: 18%;
-  bottom: 10.5%;
+  bottom: 8%;
   max-width: 280px;
   font-size: clamp(22px, 2.25vw, 30px);
 }
@@ -2512,16 +2512,16 @@ a {
 
 .global-footer-wave {
   position: absolute;
-  top: clamp(-58px, -3.7vw, -42px);
+  top: clamp(-52px, -3.2vw, -42px);
   left: 50%;
   display: block;
   width: 100dvw;
   max-width: none;
-  height: clamp(46px, 3.8vw, 62px);
+  height: clamp(42px, 3.2vw, 52px);
   margin-left: -50vw;
   object-fit: fill;
   object-position: center;
-  filter: brightness(0) saturate(100%) invert(39%) sepia(97%) saturate(1280%) hue-rotate(176deg) brightness(88%) contrast(96%);
+  filter: invert(1);
   pointer-events: none;
 }
 

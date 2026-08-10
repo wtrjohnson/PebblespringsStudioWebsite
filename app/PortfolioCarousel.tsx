@@ -508,7 +508,6 @@ export function PortfolioCarousel() {
     >
       <div className="mobile-hero-copy" aria-hidden="true">
         <p>Recent work.</p>
-        <span>Small sites with sturdy bones, clear stories, and room to grow.</span>
       </div>
       <div
         className="portfolio-scroll"

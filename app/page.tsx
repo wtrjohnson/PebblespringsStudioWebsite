@@ -1208,7 +1208,6 @@ export default function Home() {
           <section className="portfolio-section" id="portfolio" aria-label="Selected portfolio pieces" ref={portfolioSceneRef}>
             <div className="portfolio-section-heading">
               <p>Selected work.</p>
-              <h2>Websites with sturdy bones, clear stories, and room to grow.</h2>
             </div>
             <PortfolioCarousel />
           </section>
