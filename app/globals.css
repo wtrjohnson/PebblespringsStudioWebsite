@@ -2802,18 +2802,22 @@ a {
 }
 
 .transition-statement {
+  --transition-column-gap: 13px;
+  --transition-hero-gap: -30px;
+  --transition-sticky-top: 81px;
   --lead-offset: 0px;
-  min-height: 220vh;
+  min-height: calc(220vh + var(--transition-hero-gap, 0px));
   padding: 0 clamp(28px, 8vw, 118px);
+  transform: translateY(var(--transition-hero-gap, 0px));
 }
 
 .transition-copy {
   position: sticky;
-  top: 0;
+  top: var(--transition-sticky-top, 0px);
   display: grid;
-  min-height: 100vh;
-  grid-template-columns: max-content minmax(280px, 1fr);
-  gap: clamp(22px, 3.6vw, 46px);
+  min-height: calc(100vh - var(--transition-sticky-top, 0px));
+  grid-template-columns: minmax(clamp(420px, 34vw, 560px), 0.95fr) minmax(420px, 1fr);
+  gap: var(--transition-column-gap, clamp(22px, 3.6vw, 46px));
   align-content: center;
   align-items: start;
   max-width: 1180px;
@@ -2854,6 +2858,7 @@ a {
 
 .transition-lead {
   color: var(--foreground);
+  justify-self: end;
   transform: translate3d(0, var(--lead-offset), 0);
   transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
   white-space: nowrap;
@@ -2876,6 +2881,86 @@ a {
 .transition-endings p.is-active {
   color: var(--foreground);
   transform: translate3d(0, -1px, 0);
+}
+
+.transition-tuner {
+  position: fixed;
+  right: auto;
+  bottom: 18px;
+  left: 18px;
+  z-index: 80;
+  display: grid;
+  width: min(360px, calc(100vw - 36px));
+  gap: 14px;
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+  color: var(--foreground);
+  padding: 16px;
+}
+
+.transition-tuner-heading,
+.transition-tuner-control span {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.transition-tuner-heading strong {
+  font-size: 18px;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+}
+
+.transition-tuner-heading span,
+.transition-tuner-control span,
+.transition-tuner pre {
+  font-size: 12px;
+  font-weight: 720;
+  line-height: 1.25;
+}
+
+.transition-tuner-heading span {
+  color: rgba(9, 9, 9, 0.48);
+}
+
+.transition-tuner-control {
+  display: grid;
+  gap: 7px;
+}
+
+.transition-tuner-control strong {
+  font-size: 13px;
+}
+
+.transition-tuner input {
+  width: 100%;
+  accent-color: var(--signal);
+}
+
+.transition-tuner button {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  background: var(--signal);
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 820;
+  letter-spacing: -0.035em;
+  padding: 10px 14px 12px;
+}
+
+.transition-tuner pre {
+  overflow: auto;
+  margin: 0;
+  border-radius: 12px;
+  background: rgba(9, 9, 9, 0.08);
+  padding: 10px;
+  white-space: pre-wrap;
 }
 
 .performance-layout {

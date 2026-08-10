@@ -59,6 +59,12 @@ const transitionEndings = [
   "a site that feels like yours.",
 ];
 
+const TRANSITION_TUNER_DEFAULTS = {
+  columnGap: 13,
+  heroGap: -30,
+  stickyTop: 81,
+};
+
 function normalizeUrl(value: string) {
   const trimmed = value.trim();
 
@@ -160,6 +166,106 @@ function getPrimaryCtaLabel(lowestScore: number) {
   }
 
   return "Let's Fix It";
+}
+
+function TransitionTuner() {
+  const [isVisible] = useState(
+    () => typeof window !== "undefined"
+      && new URLSearchParams(window.location.search).get("tune") === "transition",
+  );
+  const [columnGap, setColumnGap] = useState(TRANSITION_TUNER_DEFAULTS.columnGap);
+  const [heroGap, setHeroGap] = useState(TRANSITION_TUNER_DEFAULTS.heroGap);
+  const [stickyTop, setStickyTop] = useState(TRANSITION_TUNER_DEFAULTS.stickyTop);
+  const [copyStatus, setCopyStatus] = useState("Copy values");
+
+  useEffect(() => {
+    const root = document.documentElement;
+
+    root.style.setProperty("--transition-column-gap", `${columnGap}px`);
+    root.style.setProperty("--transition-hero-gap", `${heroGap}px`);
+    root.style.setProperty("--transition-sticky-top", `${stickyTop}px`);
+
+    return () => {
+      root.style.removeProperty("--transition-column-gap");
+      root.style.removeProperty("--transition-hero-gap");
+      root.style.removeProperty("--transition-sticky-top");
+    };
+  }, [columnGap, heroGap, stickyTop]);
+
+  if (!isVisible) {
+    return null;
+  }
+
+  const copiedValues = [
+    "Transition tuner values:",
+    `--transition-column-gap: ${columnGap}px;`,
+    `--transition-hero-gap: ${heroGap}px;`,
+    `--transition-sticky-top: ${stickyTop}px;`,
+  ].join("\n");
+
+  const controls = [
+    {
+      id: "column-gap",
+      label: "Column gap",
+      max: 120,
+      min: 0,
+      onChange: setColumnGap,
+      value: columnGap,
+    },
+    {
+      id: "hero-gap",
+      label: "Hero border gap",
+      max: 520,
+      min: -160,
+      onChange: setHeroGap,
+      value: heroGap,
+    },
+    {
+      id: "sticky-top",
+      label: "Sticky starts at",
+      max: 260,
+      min: -120,
+      onChange: setStickyTop,
+      value: stickyTop,
+    },
+  ];
+
+  const copyValues = async () => {
+    try {
+      await window.navigator.clipboard.writeText(copiedValues);
+      setCopyStatus("Copied");
+      window.setTimeout(() => setCopyStatus("Copy values"), 1600);
+    } catch {
+      setCopyStatus("Select text below");
+    }
+  };
+
+  return (
+    <aside className="transition-tuner" aria-label="Transition layout tuning controls">
+      <div className="transition-tuner-heading">
+        <strong>Transition Tuner</strong>
+        <span>?tune=transition</span>
+      </div>
+      {controls.map((control) => (
+        <label className="transition-tuner-control" htmlFor={`transition-tuner-${control.id}`} key={control.id}>
+          <span>
+            {control.label}
+            <strong>{control.value}px</strong>
+          </span>
+          <input
+            id={`transition-tuner-${control.id}`}
+            max={control.max}
+            min={control.min}
+            onChange={(event) => control.onChange(Number(event.target.value))}
+            type="range"
+            value={control.value}
+          />
+        </label>
+      ))}
+      <button onClick={copyValues} type="button">{copyStatus}</button>
+      <pre>{copiedValues}</pre>
+    </aside>
+  );
 }
 
 function TransitionStatement() {
@@ -1226,6 +1332,7 @@ export default function Home() {
           </div>
         </section>
       </div>
+      <TransitionTuner />
     </main>
   );
 }
