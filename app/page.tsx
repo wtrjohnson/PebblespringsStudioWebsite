@@ -54,9 +54,9 @@ const scoreDescriptions: Record<ScoreKey, string> = {
 };
 
 const transitionEndings = [
-  "load fast and stay fast.",
-  "you can actually update yourself.",
-  "look like nobody else's.",
+  "fast pages.",
+  "simple updates.",
+  "a site that feels like yours.",
 ];
 
 function normalizeUrl(value: string) {
@@ -222,7 +222,7 @@ function TransitionStatement() {
       ref={transitionRef}
     >
       <div className="transition-copy">
-        <p className="transition-lead">We build websites that</p>
+        <p className="transition-lead">That means</p>
         <div className="transition-endings" aria-live="polite">
           {transitionEndings.map((ending, index) => (
             <p
