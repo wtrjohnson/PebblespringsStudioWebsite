@@ -32,6 +32,7 @@ export function PortfolioCarousel() {
   const autoScrollCancelRef = useRef<(() => void) | null>(null);
   const isAutoScrollingRef = useRef(false);
   const autoScrollTimeoutRef = useRef<number | null>(null);
+  const expandedAlignmentFrameRef = useRef<number | null>(null);
   const isPausedRef = useRef(false);
   const remainingMsRef = useRef(ROTATION_MS);
   const rotationStartedAtRef = useRef(0);
@@ -149,6 +150,10 @@ export function PortfolioCarousel() {
 
       if (autoScrollTimeoutRef.current !== null) {
         window.clearTimeout(autoScrollTimeoutRef.current);
+      }
+
+      if (expandedAlignmentFrameRef.current !== null) {
+        window.cancelAnimationFrame(expandedAlignmentFrameRef.current);
       }
 
       autoScrollCancelRef.current?.();
@@ -291,6 +296,46 @@ export function PortfolioCarousel() {
     }
   }
 
+  function centerExpandedCard(index: number) {
+    const scrollContainer = scrollRef.current;
+    const card = cardRefs.current[index];
+
+    if (!scrollContainer || !card) {
+      return;
+    }
+
+    const centeredScrollLeft = card.offsetLeft - (scrollContainer.clientWidth - card.offsetWidth) / 2;
+    const targetScrollLeft = Math.min(
+      Math.max(0, centeredScrollLeft),
+      Math.max(0, scrollContainer.scrollWidth - scrollContainer.clientWidth),
+    );
+
+    scrollContainer.scrollLeft = targetScrollLeft;
+  }
+
+  function scheduleExpandedCardCenter(index: number) {
+    if (expandedAlignmentFrameRef.current !== null) {
+      window.cancelAnimationFrame(expandedAlignmentFrameRef.current);
+    }
+
+    let startedAt = 0;
+    const trackCenter = (timestamp: number) => {
+      if (!startedAt) {
+        startedAt = timestamp;
+      }
+
+      centerExpandedCard(index);
+
+      if (timestamp - startedAt < 720) {
+        expandedAlignmentFrameRef.current = window.requestAnimationFrame(trackCenter);
+      } else {
+        expandedAlignmentFrameRef.current = null;
+      }
+    };
+
+    expandedAlignmentFrameRef.current = window.requestAnimationFrame(trackCenter);
+  }
+
   function expandProject(projectId: string, activationMode: ExpandedProjectState["activationMode"], anchorIndex: number) {
     const scrollContainer = scrollRef.current;
 
@@ -301,6 +346,10 @@ export function PortfolioCarousel() {
     pauseRotation();
     setExpandedAnchorIndex(anchorIndex);
     setExpandedProject({ projectId, activationMode });
+
+    if (activationMode === "pointer" || activationMode === "keyboard") {
+      scheduleExpandedCardCenter(anchorIndex);
+    }
   }
 
   function openMobileProject(projectId: string, anchorIndex: number) {
@@ -347,6 +396,19 @@ export function PortfolioCarousel() {
     return expandableIndexes[(currentPosition + 1) % expandableIndexes.length] ?? index;
   }
 
+  function getPreviousExpandableProjectIndex(index: number) {
+    const expandableIndexes = carouselProjects
+      .map((project, projectIndex) => (project.isProposition ? -1 : projectIndex))
+      .filter((projectIndex) => projectIndex >= 0);
+    const currentPosition = expandableIndexes.indexOf(index);
+
+    if (currentPosition <= 0) {
+      return expandableIndexes[expandableIndexes.length - 1] ?? index;
+    }
+
+    return expandableIndexes[currentPosition - 1] ?? index;
+  }
+
   function showNextExpandedProject() {
     const nextIndex = getNextExpandableProjectIndex(expandedPreviewIndex);
     const nextProject = carouselProjects[nextIndex];
@@ -364,6 +426,28 @@ export function PortfolioCarousel() {
       projectId: nextProject.id,
       activationMode: expandedProject.activationMode ?? "pointer",
     });
+
+    scheduleExpandedCardCenter(nextIndex);
+  }
+
+  function showPreviousExpandedProject() {
+    const previousIndex = getPreviousExpandableProjectIndex(expandedPreviewIndex);
+    const previousProject = carouselProjects[previousIndex];
+
+    if (!previousProject || previousProject.isProposition) {
+      return;
+    }
+
+    clearHoverTimeout();
+    remainingMsRef.current = getRotationDelay(previousIndex);
+    pauseRotation();
+    setActiveIndex(previousIndex);
+    setExpandedAnchorIndex(previousIndex);
+    setExpandedProject({
+      projectId: previousProject.id,
+      activationMode: expandedProject.activationMode ?? "pointer",
+    });
+    scheduleExpandedCardCenter(previousIndex);
   }
 
   function handleCardPointerEnter(project: PortfolioProject, index: number) {
@@ -586,7 +670,7 @@ export function PortfolioCarousel() {
               {!project.isProposition ? (
                 <>
                   <a
-                    aria-label={`View ${previewProject.title} case study`}
+                    aria-label={`Open ${previewProject.title} project website in a new tab`}
                     className={[
                       "expanded-project-preview",
                       `expanded-layout-${previewProject.expandedLayout ?? "stacked-showcase"}`,
@@ -607,9 +691,6 @@ export function PortfolioCarousel() {
                     target="_blank"
                   >
                     <span className="expanded-copy" key={`${previewProject.id}-copy`}>
-                      <span className="expanded-eyebrow">
-                        {previewProject.number ?? String(previewIndex).padStart(2, "0")} / Selected Work
-                      </span>
                       <span className="expanded-title">{previewProject.title}</span>
                       <span className="expanded-statement">
                         {renderProjectStatement(previewProject)}
@@ -631,8 +712,20 @@ export function PortfolioCarousel() {
                       ))}
                     </span>
 
-                    <span className="expanded-cta" key={`${previewProject.id}-cta`}>View case study →</span>
                   </a>
+                  <button
+                    aria-label={`Preview previous project: ${
+                      carouselProjects[getPreviousExpandableProjectIndex(previewIndex)]?.title ?? "previous project"
+                    }`}
+                    className="expanded-back"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      showPreviousExpandedProject();
+                    }}
+                    type="button"
+                  >
+                    <span>←</span>
+                  </button>
                   <button
                     aria-label={`Preview next project: ${
                       carouselProjects[getNextExpandableProjectIndex(previewIndex)]?.title ?? "next project"
@@ -667,10 +760,7 @@ export function PortfolioCarousel() {
           } as CSSProperties}
         >
           <div className="mobile-project-sheet-scroll">
-            <div className="mobile-project-sheet-topline">
-              <span>
-                {expandedPreviewProject.number ?? String(expandedPreviewIndex).padStart(2, "0")} / Selected Work
-              </span>
+            <div className="mobile-project-sheet-controls">
               <button
                 aria-label={`Close ${expandedPreviewProject.title} project preview`}
                 className="mobile-project-close"

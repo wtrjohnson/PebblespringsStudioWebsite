@@ -1312,9 +1312,6 @@ export default function Home() {
           </header>
           <TransitionStatement />
           <section className="portfolio-section" id="portfolio" aria-label="Selected portfolio pieces" ref={portfolioSceneRef}>
-            <div className="portfolio-section-heading">
-              <p>Selected work.</p>
-            </div>
             <PortfolioCarousel />
           </section>
           <div className="lower-content">
