@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "../../../db";
 import { websiteTests } from "../../../db/schema";
-import { fetchPageSpeedScores, type ScoreKey } from "../../lib/pagespeed";
+import { fetchPageSpeedReport, type PageSpeedReport, type ScoreKey } from "../../lib/pagespeed";
 
 type ScoreSource = "pagespeed" | "demo";
 
@@ -11,6 +11,7 @@ type CachedScore = {
     url: string;
     scores: Record<ScoreKey, number>;
     source: ScoreSource;
+    report?: PageSpeedReport | null;
   };
 };
 
@@ -104,6 +105,7 @@ async function recordWebsiteTest({
   referrer,
   status,
   errorMessage,
+  report,
 }: {
   submittedUrl: string;
   normalizedUrl: string;
@@ -112,6 +114,7 @@ async function recordWebsiteTest({
   referrer: string | null;
   status: "scored" | "failed";
   errorMessage?: string;
+  report?: PageSpeedReport | null;
 }) {
   try {
     const db = await getDb();
@@ -133,6 +136,7 @@ async function recordWebsiteTest({
         referrer,
         status,
         errorMessage,
+        reportData: report ?? null,
       })
       .returning({ id: websiteTests.id });
 
@@ -177,6 +181,7 @@ export async function POST(request: NextRequest) {
       normalizedUrl: cached.payload.url,
       source: cached.payload.source,
       scores: cached.payload.scores,
+      report: cached.payload.report,
       referrer,
       status: "scored",
     });
@@ -185,17 +190,19 @@ export async function POST(request: NextRequest) {
       url: cached.payload.url,
       scores: cached.payload.scores,
       websiteTestId,
+      source: cached.payload.source,
     });
   }
 
   try {
-    const pageSpeedScores = await fetchPageSpeedScores(url);
-    const scores = pageSpeedScores ?? createDemoScores(url);
-    const source: ScoreSource = pageSpeedScores ? "pagespeed" : "demo";
+    const pageSpeedReport = await fetchPageSpeedReport(url);
+    const scores = pageSpeedReport?.categories ?? createDemoScores(url);
+    const source: ScoreSource = pageSpeedReport ? "pagespeed" : "demo";
     const payload = {
       url,
       scores,
       source,
+      report: pageSpeedReport,
     };
 
     scoreCache.set(cacheKey, {
@@ -208,11 +215,12 @@ export async function POST(request: NextRequest) {
       normalizedUrl: url,
       source,
       scores,
+      report: pageSpeedReport,
       referrer,
       status: "scored",
     });
 
-    return NextResponse.json({ url, scores, websiteTestId });
+    return NextResponse.json({ url, scores, websiteTestId, source });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unable to score that site right now.";
 

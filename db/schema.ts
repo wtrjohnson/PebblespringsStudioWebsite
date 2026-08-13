@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, pgTable, serial, text } from "drizzle-orm/pg-core";
+import { integer, jsonb, pgTable, serial, text } from "drizzle-orm/pg-core";
 
 export const contactSubmissions = pgTable("contact_submissions", {
   id: serial("id").primaryKey(),
@@ -176,6 +176,7 @@ export const websiteTests = pgTable("website_tests", {
   referrer: text("referrer"),
   status: text("status", { enum: ["scored", "failed"] }).notNull().default("scored"),
   errorMessage: text("error_message"),
+  reportData: jsonb("report_data"),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
 });
 
@@ -198,5 +199,18 @@ export const websiteTestRequests = pgTable("website_test_requests", {
   message: text("message").notNull().default(""),
   requestType: text("request_type", { enum: ["report", "project"] }).notNull(),
   status: text("status", { enum: ["new", "read", "archived"] }).notNull().default("new"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
+});
+
+export const websiteTestReports = pgTable("website_test_reports", {
+  id: serial("id").primaryKey(),
+  websiteTestId: integer("website_test_id")
+    .notNull()
+    .references(() => websiteTests.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: text("expires_at").notNull(),
+  sentAt: text("sent_at"),
+  revokedAt: text("revoked_at"),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
 });

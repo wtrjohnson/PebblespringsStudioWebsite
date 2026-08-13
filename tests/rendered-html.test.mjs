@@ -42,7 +42,7 @@ test("server-renders the Pebblesprings Studio portfolio", async () => {
   assert.match(html, /See how we work/);
   assert.match(html, /SlipstreamAdvocacy-Expanded-Hero\.png/);
   assert.match(html, /AlbertRozin-Portfolio-2\.png/);
-  assert.match(html, /mailto:will@pebblesprings\.co/);
+  assert.match(html, /Website performance checker/);
   assert.match(html, /class="scene-viewport"/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
@@ -59,12 +59,11 @@ test("removes starter preview files and includes the social card", async () => {
     access(new URL("../public/pebblesprings-sign.jpeg", import.meta.url)),
   ]);
 
-  assert.match(page, /We build websites that/);
-  assert.match(page, /load fast and stay fast/);
-  assert.match(page, /you can actually update yourself/);
-  assert.match(page, /look like nobody else's/);
-  assert.match(page, /High-performing websites, guaranteed/);
-  assert.match(page, /Want to see how your website compares/);
+  assert.match(page, /We build websites/);
+  assert.match(page, /Your site should load quickly/);
+  assert.match(page, /You should be able to update the site/);
+  assert.match(page, /Your site should fit the work behind it/);
+  assert.match(page, /See how your site is doing/);
   assert.match(page, /What We Prioritize/);
   assert.match(page, /Sustainability/);
   assert.match(page, /Character/);
@@ -93,6 +92,7 @@ test("removes starter preview files and includes the social card", async () => {
   assert.match(layout, /title:\s*"Pebblesprings Studio"/);
   assert.match(layout, /url:\s*"\/og\.png"/);
   assert.doesNotMatch(page, /SkeletonPreview/);
+  assert.match(await readFile(new URL("../app/report/[token]/page.tsx", import.meta.url), "utf8"), /index:\s*false/);
   assert.doesNotMatch(layout, /Starter Project|codex-preview/);
 
   await assert.rejects(

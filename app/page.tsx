@@ -28,6 +28,7 @@ type ScoreResult = {
   url: string;
   scores: Record<ScoreKey, number>;
   websiteTestId?: number;
+  source?: "pagespeed" | "demo";
 };
 
 const FALLBACK_SCORES: ScoreMetric[] = [
@@ -988,7 +989,7 @@ function PerformanceSection({
                         </button>
                       </div>
                     </form>
-                    {reportStatus === "closed" ? (
+                    {reportStatus === "closed" && result.source === "pagespeed" ? (
                       <button
                         className="checker-report-toggle"
                         onClick={openReportForm}
@@ -996,8 +997,11 @@ function PerformanceSection({
                       >
                         Want a copy? Email yourself this report.
                       </button>
-                    ) : (
+                    ) : reportStatus !== "closed" ? (
                       <p className="checker-report-note">No newsletter. Just the report.</p>
+                    ) : null}
+                    {reportStatus === "closed" && result.source !== "pagespeed" && (
+                      <p className="checker-report-note">Email reports are available for PageSpeed results.</p>
                     )}
                     {reportErrorMessage && <p className="checker-report-error">{reportErrorMessage}</p>}
                   </div>

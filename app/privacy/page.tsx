@@ -51,7 +51,8 @@ export default function PrivacyPage() {
               </li>
               <li>
                 <strong>Report or project request:</strong> your email address, message,
-                request type, and the website check connected to the request.
+                request type, and the website check connected to the request. If you request
+                a report, we also store the PageSpeed snapshot used to create it.
               </li>
               <li>
                 <strong>Client portal:</strong> your name, email address, client account,
@@ -98,11 +99,25 @@ export default function PrivacyPage() {
             <ul>
               <li>Our hosting and database providers store site and project data.</li>
               <li>PageSpeed Insights may process a submitted website URL to provide performance results.</li>
-              <li>Resend may deliver client-portal login emails when email delivery is configured.</li>
+              <li>Resend may deliver client-portal login emails and requested website reports.</li>
             </ul>
             <p>
               The site also links to portfolio websites and other third-party sites. Their
               privacy policies apply when you leave this site.
+            </p>
+          </section>
+
+          <section>
+            <h2>Website reports</h2>
+            <p>
+              If you ask us to email a website report, we use your email address only to send
+              that report. The report contains the submitted URL, PageSpeed scores, key
+              metrics, and audit findings. The private report link expires after seven days;
+              it is not a newsletter or advertising subscription.
+            </p>
+            <p>
+              Resend processes the email for delivery. You can ask us to delete the report
+              email address, stored report data, or private report record by contacting us.
             </p>
           </section>
 
@@ -117,6 +132,7 @@ export default function PrivacyPage() {
             <p>
               Portal magic links expire after 15 minutes and can be used only once. Portal
               sessions expire after seven days unless they are revoked sooner.
+              Website report links expire after seven days.
             </p>
           </section>
 
