@@ -1272,7 +1272,7 @@ export default function Home() {
             </header>
 
             <div className="illustrated-hero-copy">
-              <h1>Your business deserves a website<br />that looks as good as the work<br />behind it.</h1>
+              <h1>Make your business<br />look as good as it is.</h1>
               <button className="illustrated-hero-work" type="button" onClick={() => moveToScene("about")}>
                 See how we work
               </button>

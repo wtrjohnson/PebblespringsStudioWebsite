@@ -5,11 +5,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Pebblesprings Studio",
   description:
-    "A dead-simple portfolio for Pebblesprings Studio, a web design studio building clear, sturdy websites.",
+    "Make your business look as good as it is. Pebblesprings Studio builds fast, distinctive websites for good businesses.",
   openGraph: {
     title: "Pebblesprings Studio",
     description:
-      "Small, sturdy websites for people who need the work to feel clear.",
+      "Websites that make good businesses look the part—fast, sturdy, and built to feel like yours.",
     type: "website",
     images: [
       {
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Pebblesprings Studio",
     description:
-      "Small, sturdy websites for people who need the work to feel clear.",
+      "Websites that make good businesses look the part—fast, sturdy, and built to feel like yours.",
     images: ["/PSLinkPreview.png"],
   },
   icons: {

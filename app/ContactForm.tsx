@@ -64,11 +64,13 @@ export function ContactForm({ initialMessage = "" }: { initialMessage?: string }
   return (
     <div className="contact-layout">
       <div className="contact-copy">
-        <h1>Start a project</h1>
-        <p>
-          Tell me what you need.
+        <h1>
+          Let&apos;s make your business
           <br />
-          I&apos;ll get back to you.
+          look the part.
+        </h1>
+        <p>
+          Tell me a little about what you do and what you&apos;re trying to build.
         </p>
       </div>
 
@@ -92,7 +94,7 @@ export function ContactForm({ initialMessage = "" }: { initialMessage?: string }
           <span>Email</span>
           <input name="email" type="email" autoComplete="email" />
         </label>
-        <label>
+        <label className="contact-project">
           <span>Project or company</span>
           <input name="project" type="text" />
         </label>
@@ -100,30 +102,23 @@ export function ContactForm({ initialMessage = "" }: { initialMessage?: string }
           <span>What do you need?</span>
           <textarea name="message" rows={5} defaultValue={initialMessage} required />
         </label>
-        <label>
-          <span>Budget</span>
-          <input name="budget" type="text" />
-        </label>
-        <label>
-          <span>Desired timeline</span>
-          <input name="timeline" type="text" />
-        </label>
         <button
           disabled={isContactSubmitted || isContactSubmitting}
           ref={contactSubmitButtonRef}
           type="submit"
         >
           <span className="send-label send-label-default">
-            {isContactSubmitting ? "Sending..." : "Send message"}
+            {isContactSubmitting ? "Sending..." : "Send it over"}
           </span>
           <span className="send-label send-label-sent">Message Sent</span>
         </button>
         {contactError ? <p className="contact-error">{contactError}</p> : null}
       </form>
 
-      <a className="contact-email" href="mailto:will@pebblesprings.co">
-        will@pebblesprings.co
-      </a>
+      <p className="contact-email">
+        Prefer email?{" "}
+        <a href="mailto:will@pebblesprings.co">will@pebblesprings.co</a>
+      </p>
     </div>
   );
 }
