@@ -48,7 +48,7 @@ const scoreOrder: ScoreKey[] = ["speed", "reach", "reliability", "visibility"];
 
 const scoreDescriptions: Record<ScoreKey, string> = {
   speed: "How fast your site loads and responds. The first thing anyone notices, whether they realize it or not.",
-  reach: "How usable your site is for more people, across devices, inputs, and accessibility needs.",
+  reach: "How easy your site is to use across devices and assistive tools.",
   reliability: "How solid the build is under the hood, from browser behavior to technical best practices.",
   visibility: "How clearly search engines can understand, index, and share your site.",
 };
@@ -106,6 +106,7 @@ function clamp(value: number, min = 0, max = 1) {
 }
 
 const DESCRIPTION_OVERLAP = 18;
+const DESCRIPTION_GAP = 28;
 
 function descriptionPositionStyle(grid: HTMLElement | null, target: HTMLElement): CSSProperties {
   if (!grid) {
@@ -126,7 +127,7 @@ function descriptionPositionStyle(grid: HTMLElement | null, target: HTMLElement)
   if (isRightHalf) {
     style["--desc-right"] = `${Math.max(0, gridRect.width - (ringRect.left - gridRect.left) - DESCRIPTION_OVERLAP)}px`;
   } else {
-    style["--desc-left"] = `${Math.max(0, ringRect.right - gridRect.left - DESCRIPTION_OVERLAP)}px`;
+    style["--desc-left"] = `${Math.max(0, ringRect.right - gridRect.left + DESCRIPTION_GAP)}px`;
   }
 
   return style as CSSProperties;
@@ -799,7 +800,7 @@ function PerformanceSection({
         <div className="checker-stage">
           <div className="checker-default" aria-hidden={shouldShowCheckerResults ? "true" : undefined}>
             <div className="checker-default-copy">
-              <h2>Want to see how your website compares?</h2>
+              <h2>See how your site is doing.</h2>
             </div>
             <form className="checker-form" onSubmit={handleSubmit}>
               <label className="sr-only" htmlFor="website-url">
@@ -823,7 +824,7 @@ function PerformanceSection({
 
           <div className="checker-results" aria-live="polite">
             <div className="checker-results-header">
-              <h2>Want to see how your website compares?</h2>
+              <h2>See how your site is doing.</h2>
               {isChecking && <p className="results-label">Checking {displayUrl(pendingUrl)}</p>}
               {result && <p className="results-label">Scores for {displayUrl(result.url)}</p>}
             </div>
@@ -1018,15 +1019,15 @@ const HowWeWorkSection = forwardRef<HTMLElement, {
   const workCards = [
     {
       title: "Performance",
-      copy: "The site works the way it's supposed to: fast, accessible, built well underneath.",
+      copy: "Your site should load quickly and hold up under real use.",
     },
     {
       title: "Sustainability",
-      copy: "The site doesn't depend on us to survive. You can update it, keep it current, and hold onto it.",
+      copy: "You should be able to update the site without us.",
     },
     {
       title: "Character",
-      copy: "Not a template with your name on it. Every project starts from what's actually true about the client.",
+      copy: "Your site should fit the work behind it. We build around what makes your practice different.",
     },
   ];
 
@@ -1042,7 +1043,7 @@ const HowWeWorkSection = forwardRef<HTMLElement, {
         ))}
       </div>
       <div className="how-work-cta">
-        <p>Ready to Start a Project?</p>
+          <p>Have a project in mind?</p>
         <button type="button" onClick={onStartProject}>
           Contact Us
         </button>

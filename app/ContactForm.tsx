@@ -66,9 +66,9 @@ export function ContactForm({ initialMessage = "" }: { initialMessage?: string }
       <div className="contact-copy">
         <h1>Start a project</h1>
         <p>
-          Tell me what you&apos;re building.
+          Tell me what you need.
           <br />
-          I&apos;ll reply as soon as I can.
+          I&apos;ll get back to you.
         </p>
       </div>
 
@@ -93,7 +93,7 @@ export function ContactForm({ initialMessage = "" }: { initialMessage?: string }
           <input name="email" type="email" autoComplete="email" />
         </label>
         <label>
-          <span>Project / company</span>
+          <span>Project or company</span>
           <input name="project" type="text" />
         </label>
         <label className="contact-message">
@@ -101,11 +101,11 @@ export function ContactForm({ initialMessage = "" }: { initialMessage?: string }
           <textarea name="message" rows={5} defaultValue={initialMessage} required />
         </label>
         <label>
-          <span>Budget range</span>
+          <span>Budget</span>
           <input name="budget" type="text" />
         </label>
         <label>
-          <span>Timeline</span>
+          <span>Desired timeline</span>
           <input name="timeline" type="text" />
         </label>
         <button
