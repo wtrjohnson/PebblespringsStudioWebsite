@@ -118,11 +118,23 @@ function descriptionPositionStyle(grid: HTMLElement | null, target: HTMLElement)
   const ringEl = target.querySelector(".score-ring") ?? target;
   const ringRect = ringEl.getBoundingClientRect();
   const centerY = ringRect.top - gridRect.top + ringRect.height / 2;
+  const scoreItems = Array.from(grid.querySelectorAll<HTMLElement>(".result-score-item"));
+  const targetIndex = scoreItems.indexOf(target);
+  const rowSize = Math.max(1, Math.ceil(scoreItems.length / 2));
+  const oppositeRowItem = targetIndex < rowSize
+    ? scoreItems[rowSize]
+    : scoreItems[0];
+  const oppositeRing = oppositeRowItem?.querySelector(".score-ring") ?? oppositeRowItem;
+  const oppositeRingRect = oppositeRing?.getBoundingClientRect();
+  const oppositeCenterY = oppositeRingRect
+    ? oppositeRingRect.top - gridRect.top + oppositeRingRect.height / 2
+    : centerY;
   const ringCenterX = ringRect.left - gridRect.left + ringRect.width / 2;
   const isRightHalf = ringCenterX > gridRect.width / 2;
 
   const style: Record<string, string> = {
     "--desc-y": `${centerY}px`,
+    "--desc-mobile-y": `${oppositeCenterY}px`,
   };
 
   if (isRightHalf) {
@@ -1265,6 +1277,7 @@ export default function Home() {
           aria-label="Pebblesprings Studio home"
           ref={landingSceneRef}
         >
+          <img className="illustrated-hero-border" src="/WhiteBorder.svg" alt="" aria-hidden="true" />
           <div className="illustrated-hero-inner">
             <header className="illustrated-hero-header">
               <a className="illustrated-brand" href="#home" aria-label="Pebblesprings Studio home">

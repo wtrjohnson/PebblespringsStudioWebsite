@@ -5357,26 +5357,25 @@ a {
     line-height: 1.05;
   }
 
-  /* Absolute positioning against a fixed padding reservation can't fit copy of
-     varying length — it overlapped the bottom row of labels. The description is
-     a direct grid child, so let it span the row in normal flow instead: the
-     grid grows to fit and nothing can overlap or be clipped. */
   .result-score-description {
-    position: static;
-    grid-column: 1 / -1;
-    width: auto;
-    max-width: 560px;
-    margin: 6px auto 0;
+    position: absolute;
+    top: var(--desc-mobile-y, var(--desc-y, 50%));
+    left: 50%;
+    right: auto;
+    z-index: 4;
+    width: min(calc(100% - 18px), 420px);
+    max-width: none;
+    margin: 0;
     font-size: 22px;
     text-align: left;
-    transform: none;
+    transform: translate3d(-50%, calc(-50% + 8px), 0);
     display: none;
   }
 
   .result-score-grid.has-active-description .result-score-description,
   .score-grid.has-active-description .result-score-description {
     display: block;
-    transform: none;
+    transform: translate3d(-50%, -50%, 0);
   }
 
   .checker-verdict {
@@ -5888,10 +5887,23 @@ a {
 .studio-shell.illustrated-hero {
   min-height: 100vh;
   min-height: 100dvh;
-  overflow: visible;
+  overflow: hidden;
   border: 0;
   background: #0878cf url("/TreeFarmHero.png") center center / cover no-repeat;
   color: #ffffff;
+}
+
+.illustrated-hero-border {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 93px;
+  object-fit: fill;
+  pointer-events: none;
 }
 
 .illustrated-hero-inner {
