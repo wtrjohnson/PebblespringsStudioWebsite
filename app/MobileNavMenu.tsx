@@ -15,8 +15,12 @@ export function MobileNavMenu({ items }: { items: MobileNavItem[] }) {
 
   useEffect(() => {
     if (!isOpen) {
+      document.body.style.overflow = "";
       return undefined;
     }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
     const handlePointerDown = (event: PointerEvent) => {
       if (!menuRef.current?.contains(event.target as Node)) {
@@ -33,6 +37,7 @@ export function MobileNavMenu({ items }: { items: MobileNavItem[] }) {
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      document.body.style.overflow = previousOverflow;
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("keydown", handleKeyDown);
     };
@@ -53,7 +58,7 @@ export function MobileNavMenu({ items }: { items: MobileNavItem[] }) {
   };
 
   return (
-    <div className="mobile-nav-menu" ref={menuRef}>
+    <div className={`mobile-nav-menu${isOpen ? " is-open" : ""}`} ref={menuRef}>
       <button
         aria-expanded={isOpen}
         aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
@@ -65,7 +70,14 @@ export function MobileNavMenu({ items }: { items: MobileNavItem[] }) {
         <span aria-hidden="true" />
         <span aria-hidden="true" />
       </button>
-      <div className="mobile-nav-dropdown" hidden={!isOpen}>
+      <div
+        aria-label="Mobile navigation"
+        className="mobile-nav-dropdown"
+        hidden={!isOpen}
+        role="dialog"
+      >
+        <div className="mobile-nav-panel-header">Menu</div>
+        <div className="mobile-nav-panel-links">
         {items.map((item) => item.href ? (
           <Link href={item.href} key={item.label} onClick={() => selectItem(item)}>
             {item.label}
@@ -75,6 +87,7 @@ export function MobileNavMenu({ items }: { items: MobileNavItem[] }) {
             {item.label}
           </button>
         ))}
+        </div>
       </div>
     </div>
   );
