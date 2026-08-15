@@ -1058,11 +1058,15 @@ const HowWeWorkSection = forwardRef<HTMLElement, {
 
 export default function Home() {
   const landingSceneRef = useRef<HTMLElement | null>(null);
+  const sceneViewportRef = useRef<HTMLElement | null>(null);
   const lowerSceneRef = useRef<HTMLElement | null>(null);
   const portfolioSceneRef = useRef<HTMLElement | null>(null);
   const performanceSceneRef = useRef<HTMLDivElement | null>(null);
   const howWorkSceneRef = useRef<HTMLElement | null>(null);
-  const [chromeProgress, setChromeProgress] = useState(0);
+  const [chromeMode, setChromeMode] = useState({
+    isCompact: false,
+    isSticky: false,
+  });
 
   useEffect(() => {
     let frameId = 0;
@@ -1082,12 +1086,21 @@ export default function Home() {
       const morphStart = viewportHeight * 0.52;
       const nextProgress = clamp((morphStart - rect.bottom) / morphDistance);
 
-      setChromeProgress((previousProgress) => {
-        if (Math.abs(previousProgress - nextProgress) < 0.005) {
-          return previousProgress;
+      sceneViewportRef.current?.style.setProperty("--chrome-progress", `${nextProgress}`);
+      setChromeMode((previousMode) => {
+        const nextMode = {
+          isCompact: nextProgress > 0.82,
+          isSticky: nextProgress > 0.56,
+        };
+
+        if (
+          previousMode.isCompact === nextMode.isCompact
+          && previousMode.isSticky === nextMode.isSticky
+        ) {
+          return previousMode;
         }
 
-        return nextProgress;
+        return nextMode;
       });
     };
 
@@ -1189,14 +1202,15 @@ export default function Home() {
     },
   ], [moveToScene]);
 
-  const isCompactChrome = chromeProgress > 0.82;
-  const mobileNavItems = chromeProgress > 0.56 ? stickyNavItems : heroNavItems;
+  const isCompactChrome = chromeMode.isCompact;
+  const mobileNavItems = chromeMode.isSticky ? stickyNavItems : heroNavItems;
 
   return (
     <main
       className={`scene-viewport${isCompactChrome ? " is-compact-chrome" : ""}`}
+      ref={sceneViewportRef}
       style={{
-        "--chrome-progress": chromeProgress,
+        "--chrome-progress": 0,
       } as CSSProperties}
     >
       <div className="morph-chrome" aria-hidden={!isCompactChrome}>
@@ -1251,7 +1265,6 @@ export default function Home() {
           aria-label="Pebblesprings Studio home"
           ref={landingSceneRef}
         >
-          <img className="illustrated-hero-border" src="/WhiteBorder.svg" alt="" aria-hidden="true" />
           <div className="illustrated-hero-inner">
             <header className="illustrated-hero-header">
               <a className="illustrated-brand" href="#home" aria-label="Pebblesprings Studio home">

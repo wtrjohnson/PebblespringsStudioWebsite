@@ -2572,21 +2572,6 @@ a {
   color: #ffffff;
 }
 
-.global-footer-wave {
-  position: absolute;
-  top: clamp(-52px, -3.2vw, -42px);
-  left: 50%;
-  display: block;
-  width: 100dvw;
-  max-width: none;
-  height: clamp(42px, 3.2vw, 52px);
-  margin-left: -50vw;
-  object-fit: fill;
-  object-position: center;
-  filter: invert(1);
-  pointer-events: none;
-}
-
 .global-footer-inner {
   display: grid;
   grid-template-columns: minmax(130px, 1fr) minmax(360px, auto) minmax(130px, 1fr);
@@ -5485,11 +5470,6 @@ a {
     margin-top: 56px;
   }
 
-  .global-footer-wave {
-    top: -36px;
-    height: 42px;
-  }
-
   .global-footer-inner {
     gap: 26px;
     padding: 48px 18px 34px;
@@ -5912,20 +5892,6 @@ a {
   border: 0;
   background: #0878cf url("/TreeFarmHero.png") center center / cover no-repeat;
   color: #ffffff;
-}
-
-.illustrated-hero-border {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  z-index: 2;
-  display: block;
-  width: 117vw;
-  height: 93px;
-  max-width: none;
-  object-fit: fill;
-  pointer-events: none;
-  transform: translateX(-50%);
 }
 
 .illustrated-hero-inner {
@@ -6821,12 +6787,6 @@ a {
 
   .privacy-intro {
     margin-bottom: 44px;
-  }
-
-  .illustrated-hero-border {
-    width: 101vw;
-    height: 88px;
-    transform: translate(-50%, 32px);
   }
 
   .scene-viewport:not(.is-compact-chrome) .lower-topbar {

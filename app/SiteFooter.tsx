@@ -3,7 +3,6 @@ import Link from "next/link";
 export function SiteFooter() {
   return (
     <footer className="global-footer" aria-label="Pebblesprings Studio footer">
-      <img className="global-footer-wave" src="/FooterWavyBorder.svg" alt="" aria-hidden="true" />
       <div className="global-footer-inner">
         <Link className="global-footer-brand" href="/">
           <img src="/PSLogo.png" alt="" aria-hidden="true" />
