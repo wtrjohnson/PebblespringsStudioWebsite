@@ -13,7 +13,7 @@ export type PageSpeedAudit = {
 
 export type PageSpeedReport = {
   url: string;
-  strategy: "mobile";
+  strategy: "desktop";
   fetchedAt: string;
   categories: Record<ScoreKey, number>;
   metrics: PageSpeedAudit[];
@@ -74,7 +74,7 @@ export async function fetchPageSpeedReport(url: string, configuredApiKey?: strin
 
   const pageSpeedUrl = new URL("https://www.googleapis.com/pagespeedonline/v5/runPagespeed");
   pageSpeedUrl.searchParams.set("url", url);
-  pageSpeedUrl.searchParams.set("strategy", "mobile");
+  pageSpeedUrl.searchParams.set("strategy", "desktop");
   pageSpeedUrl.searchParams.set("category", "performance");
   pageSpeedUrl.searchParams.append("category", "accessibility");
   pageSpeedUrl.searchParams.append("category", "best-practices");
@@ -137,7 +137,7 @@ export async function fetchPageSpeedReport(url: string, configuredApiKey?: strin
 
   return {
     url: data.lighthouseResult?.finalDisplayedUrl ?? url,
-    strategy: "mobile",
+    strategy: "desktop",
     fetchedAt: data.fetchTime ?? new Date().toISOString(),
     categories,
     metrics,
