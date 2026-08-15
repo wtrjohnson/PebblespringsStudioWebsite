@@ -590,8 +590,8 @@ export function PortfolioCarousel() {
       id="portfolio-carousel"
       aria-label="Pebblesprings Studio portfolio"
     >
-      <div className="mobile-hero-copy" aria-hidden="true">
-        <p>Recent work.</p>
+      <div className="portfolio-gallery-heading">
+        <h2>Selected work</h2>
       </div>
       <div
         className="portfolio-scroll"
@@ -667,6 +667,10 @@ export function PortfolioCarousel() {
                   <span>{project.title}</span>
                 </div>
               </a>
+              <div className="mobile-project-caption" aria-hidden="true">
+                <span>{project.eyebrow}</span>
+                <strong>{project.title}</strong>
+              </div>
               {!project.isProposition ? (
                 <>
                   <a
