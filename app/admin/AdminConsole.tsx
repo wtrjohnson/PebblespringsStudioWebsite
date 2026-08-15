@@ -11,6 +11,18 @@ import { ApprovalsAdminBoard, type AdminApproval } from "./projects/[id]/approva
 
 type AdminLine = LedgerLine;
 type AdminView = "detail" | "updates" | "approvals" | "preview";
+type ScoreAlert = {
+  id: number;
+  projectKey: string;
+  url: string;
+  metric: "speed" | "reach" | "reliability" | "visibility";
+  firstValue: number;
+  secondValue: number;
+  status: "open" | "acknowledged";
+  createdAt: string;
+};
+
+const scoreAlertLabels = { speed: "Speed", reach: "Reach", reliability: "Reliability", visibility: "Visibility" };
 
 function formatDate(value: string | null) {
   if (!value) return "—";
@@ -62,6 +74,9 @@ export function AdminConsole({ initialLines }: { initialLines: AdminLine[] }) {
   const [approvals, setApprovals] = useState<AdminApproval[] | null>(null);
   const [loadedView, setLoadedView] = useState<{ projectId: number; view: "updates" | "approvals" } | null>(null);
   const [viewError, setViewError] = useState("");
+  const [scoreAlerts, setScoreAlerts] = useState<ScoreAlert[]>([]);
+  const [alertError, setAlertError] = useState("");
+  const [updatingAlertId, setUpdatingAlertId] = useState<number | null>(null);
   const querySelection = searchParams.get("client");
   const requestedView = searchParams.get("view");
   const view: AdminView = requestedView === "updates" || requestedView === "approvals" || requestedView === "preview" ? requestedView : "detail";
@@ -69,6 +84,35 @@ export function AdminConsole({ initialLines }: { initialLines: AdminLine[] }) {
     () => lines.find((line) => line.slug === querySelection || String(line.clientId) === querySelection) ?? null,
     [lines, querySelection],
   );
+
+  useEffect(() => {
+    fetch("/api/admin/score-alerts")
+      .then(async (response) => {
+        const data = await response.json().catch(() => null) as { alerts?: ScoreAlert[]; error?: string } | null;
+        if (!response.ok) throw new Error(data?.error ?? "Unable to load score alerts.");
+        setScoreAlerts(data?.alerts ?? []);
+      })
+      .catch((error: Error) => setAlertError(error.message));
+  }, []);
+
+  async function updateScoreAlert(id: number, status: "acknowledged" | "resolved") {
+    setUpdatingAlertId(id);
+    setAlertError("");
+    try {
+      const response = await fetch(`/api/admin/score-alerts/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await response.json().catch(() => null) as { error?: string } | null;
+      if (!response.ok) throw new Error(data?.error ?? "Unable to update score alert.");
+      setScoreAlerts((current) => current.filter((alert) => alert.id !== id));
+    } catch (error) {
+      setAlertError(error instanceof Error ? error.message : "Unable to update score alert.");
+    } finally {
+      setUpdatingAlertId(null);
+    }
+  }
 
   useEffect(() => {
     if (!selected?.projectId || (view !== "updates" && view !== "approvals")) return;
@@ -217,6 +261,20 @@ export function AdminConsole({ initialLines }: { initialLines: AdminLine[] }) {
 
   return (
     <div className={`admin-console${selected ? "" : " is-no-selection"}`}>
+      <section className="admin-score-alerts" aria-labelledby="score-alerts-title">
+        <div className="admin-section-heading"><h2 id="score-alerts-title">Score alerts</h2><span>{scoreAlerts.length ? `${scoreAlerts.length} open` : "No open alerts"}</span></div>
+        {alertError ? <p className="admin-error admin-view-error">{alertError}</p> : null}
+        {scoreAlerts.map((alert) => (
+          <article className="admin-score-alert" key={alert.id}>
+            <div><strong>{alert.projectKey}</strong><span>{scoreAlertLabels[alert.metric]} below 90 for two daily readings</span></div>
+            <div><span>{alert.firstValue} → {alert.secondValue}</span><span>{formatDate(alert.createdAt)}</span></div>
+            <div className="admin-score-alert-actions">
+              {alert.status === "open" ? <button className="admin-button" disabled={updatingAlertId === alert.id} onClick={() => updateScoreAlert(alert.id, "acknowledged")} type="button">Acknowledge</button> : null}
+              <button className="admin-button" disabled={updatingAlertId === alert.id} onClick={() => updateScoreAlert(alert.id, "resolved")} type="button">Resolve</button>
+            </div>
+          </article>
+        ))}
+      </section>
       {selected ? <div className="admin-console-title"><h1 id="selected-client-title">{selected.clientName}</h1></div> : <div className="admin-no-client-title"><h1>Select a Client</h1></div>}
       {selected ? renderView() : null}
       <ClientMatrix lines={lines} onSelect={select} selectedClientId={selected?.clientId ?? null} />

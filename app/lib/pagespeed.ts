@@ -65,8 +65,8 @@ function normalizeAudit(id: string, audit: Record<string, unknown>): PageSpeedAu
   };
 }
 
-export async function fetchPageSpeedReport(url: string): Promise<PageSpeedReport | null> {
-  const apiKey = process.env.PAGESPEED_INSIGHTS_API_KEY ?? process.env.GOOGLE_PAGESPEED_API_KEY;
+export async function fetchPageSpeedReport(url: string, configuredApiKey?: string): Promise<PageSpeedReport | null> {
+  const apiKey = configuredApiKey ?? process.env.PAGESPEED_INSIGHTS_API_KEY ?? process.env.GOOGLE_PAGESPEED_API_KEY;
 
   if (!apiKey) {
     return null;
@@ -146,7 +146,7 @@ export async function fetchPageSpeedReport(url: string): Promise<PageSpeedReport
   };
 }
 
-export async function fetchPageSpeedScores(url: string): Promise<Record<ScoreKey, number> | null> {
-  const report = await fetchPageSpeedReport(url);
+export async function fetchPageSpeedScores(url: string, configuredApiKey?: string): Promise<Record<ScoreKey, number> | null> {
+  const report = await fetchPageSpeedReport(url, configuredApiKey);
   return report?.categories ?? null;
 }

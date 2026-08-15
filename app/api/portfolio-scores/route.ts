@@ -1,107 +1,52 @@
+import { and, eq, gte, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "../../../db";
-import { portfolioScores } from "../../../db/schema";
+import { portfolioScoreReadings } from "../../../db/schema";
 import { carouselProjects } from "../../portfolioData";
-import { fetchPageSpeedScores, type ScoreKey } from "../../lib/pagespeed";
+import type { ScoreKey } from "../../lib/pagespeed";
 
-const REFRESH_INTERVAL_MS = 1000 * 60 * 60 * 24;
-
-const FALLBACK_SCORES: Record<ScoreKey, number> = {
-  speed: 100,
-  reach: 94,
-  reliability: 97,
-  visibility: 98,
-};
-
-async function refreshStalePortfolioScores() {
-  try {
-    const db = await getDb();
-    const rows = await db.select().from(portfolioScores);
-    const rowsByUrl = new Map(rows.map((row) => [row.url, row]));
-    const now = Date.now();
-
-    for (const project of carouselProjects) {
-      const existing = rowsByUrl.get(project.url);
-      const isStale = !existing || now - new Date(existing.updatedAt).getTime() > REFRESH_INTERVAL_MS;
-
-      if (!isStale) {
-        continue;
-      }
-
-      try {
-        const scores = await fetchPageSpeedScores(project.url);
-
-        if (!scores) {
-          continue;
-        }
-
-        const updatedAt = new Date().toISOString();
-
-        await db
-          .insert(portfolioScores)
-          .values({
-            url: project.url,
-            speedScore: scores.speed,
-            reachScore: scores.reach,
-            reliabilityScore: scores.reliability,
-            visibilityScore: scores.visibility,
-            updatedAt,
-          })
-          .onConflictDoUpdate({
-            target: portfolioScores.url,
-            set: {
-              speedScore: scores.speed,
-              reachScore: scores.reach,
-              reliabilityScore: scores.reliability,
-              visibilityScore: scores.visibility,
-              updatedAt,
-            },
-          });
-      } catch (error) {
-        console.error(`Unable to refresh portfolio score for ${project.url}`, error);
-      }
-    }
-  } catch (error) {
-    console.error("Unable to refresh portfolio scores", error);
-  }
-}
+const SCORE_KEYS: ScoreKey[] = ["speed", "reach", "reliability", "visibility"];
+const SCORE_COLUMNS = {
+  speed: "speedScore",
+  reach: "reachScore",
+  reliability: "reliabilityScore",
+  visibility: "visibilityScore",
+} as const;
 
 export async function GET() {
+  const now = new Date();
+  const windowEnd = now.toISOString();
+  const windowStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
   try {
-    await refreshStalePortfolioScores();
-
     const db = await getDb();
-    const rows = await db.select().from(portfolioScores);
+    const trackedProjectKeys = carouselProjects.map((project) => project.id);
+    const readings = await db.select().from(portfolioScoreReadings).where(and(
+      eq(portfolioScoreReadings.status, "scored"),
+      gte(portfolioScoreReadings.capturedAt, windowStart),
+      inArray(portfolioScoreReadings.projectKey, trackedProjectKeys),
+    ));
 
-    if (rows.length === 0) {
-      return NextResponse.json({ scores: FALLBACK_SCORES, updatedAt: null });
+    if (readings.length === 0) {
+      return NextResponse.json({ status: "unavailable", scores: null, readingCount: 0 });
     }
 
-    const totals = rows.reduce(
-      (acc, row) => ({
-        speed: acc.speed + row.speedScore,
-        reach: acc.reach + row.reachScore,
-        reliability: acc.reliability + row.reliabilityScore,
-        visibility: acc.visibility + row.visibilityScore,
-      }),
-      { speed: 0, reach: 0, reliability: 0, visibility: 0 },
-    );
+    const totals = readings.reduce((acc, reading) => {
+      for (const key of SCORE_KEYS) {
+        acc[key] += reading[SCORE_COLUMNS[key]] ?? 0;
+      }
+      return acc;
+    }, { speed: 0, reach: 0, reliability: 0, visibility: 0 } as Record<ScoreKey, number>);
 
-    const scores: Record<ScoreKey, number> = {
-      speed: Math.round(totals.speed / rows.length),
-      reach: Math.round(totals.reach / rows.length),
-      reliability: Math.round(totals.reliability / rows.length),
-      visibility: Math.round(totals.visibility / rows.length),
-    };
-
-    const oldestUpdatedAt = rows
-      .map((row) => row.updatedAt)
-      .sort()[0] ?? null;
-
-    return NextResponse.json({ scores, updatedAt: oldestUpdatedAt });
+    return NextResponse.json({
+      status: "available",
+      scores: Object.fromEntries(SCORE_KEYS.map((key) => [key, Math.round(totals[key] / readings.length)])),
+      readingCount: readings.length,
+      windowStart,
+      windowEnd,
+    });
   } catch (error) {
-    console.error("Unable to load portfolio scores", error);
-
-    return NextResponse.json({ scores: FALLBACK_SCORES, updatedAt: null });
+    console.error("Unable to load portfolio score readings", error);
+    return NextResponse.json({ status: "unavailable", scores: null, readingCount: 0 });
   }
 }

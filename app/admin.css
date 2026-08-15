@@ -822,6 +822,48 @@ body:has(.admin-root) .global-footer {
   border-right: 1px solid var(--admin-rule);
 }
 
+.admin-score-alerts {
+  margin: 0 0 18px;
+  padding: 18px 20px;
+  border: 1px solid var(--admin-border, #d9d9d4);
+  background: #fff;
+}
+
+.admin-section-heading,
+.admin-score-alert,
+.admin-score-alert > div {
+  display: flex;
+  align-items: center;
+}
+
+.admin-section-heading {
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.admin-section-heading h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.admin-score-alert {
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 0;
+  border-top: 1px solid var(--admin-border, #d9d9d4);
+}
+
+.admin-score-alert > div {
+  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.admin-score-alert-actions {
+  flex-direction: row !important;
+  align-items: center !important;
+}
+
 .admin-client-table th:last-child,
 .admin-client-table td:last-child {
   border-right: 0;

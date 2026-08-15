@@ -5,7 +5,7 @@ export type ScoreKey = "speed" | "reach" | "reliability" | "visibility";
 export type ScoreMetric = {
   key: ScoreKey;
   label: string;
-  value: number;
+  value: number | null;
 };
 
 const scoreLabels: Record<ScoreKey, string> = {
@@ -17,7 +17,7 @@ const scoreLabels: Record<ScoreKey, string> = {
 
 const scoreOrder: ScoreKey[] = ["speed", "reach", "reliability", "visibility"];
 
-function toScoreMetrics(scores: Record<ScoreKey, number>): ScoreMetric[] {
+function toScoreMetrics(scores: Record<ScoreKey, number | null>): ScoreMetric[] {
   return scoreOrder.map((key) => ({
     key,
     label: scoreLabels[key],
@@ -25,8 +25,10 @@ function toScoreMetrics(scores: Record<ScoreKey, number>): ScoreMetric[] {
   }));
 }
 
-export function usePortfolioScores(fallback: ScoreMetric[]) {
-  const [scores, setScores] = useState<ScoreMetric[]>(fallback);
+const emptyScores = toScoreMetrics({ speed: null, reach: null, reliability: null, visibility: null });
+
+export function usePortfolioScores() {
+  const [scores, setScores] = useState<ScoreMetric[]>(emptyScores);
 
   useEffect(() => {
     let cancelled = false;

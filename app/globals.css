@@ -5954,12 +5954,21 @@ a {
 }
 
 .studio-shell.illustrated-hero {
+  --hero-art-bottom-gap: clamp(72px, 10vh, 124px);
   min-height: 100vh;
   min-height: 100dvh;
   overflow: hidden;
   border: 0;
-  background: #0878cf url("/TreeFarmHero.png") center center / cover no-repeat;
+  background: #ffffff;
   color: #ffffff;
+}
+
+.studio-shell.illustrated-hero::before {
+  position: absolute;
+  inset: 0 0 var(--hero-art-bottom-gap);
+  z-index: 0;
+  background: #0878cf url("/TreeFarmHero.png") center center / cover no-repeat;
+  content: "";
 }
 
 .illustrated-hero-inner {
@@ -6080,7 +6089,7 @@ a {
 
 .illustrated-hero-copy {
   display: flex;
-  max-width: 620px;
+  max-width: min(900px, 100%);
   margin-top: auto;
   flex-direction: column;
   align-items: flex-start;
@@ -6769,6 +6778,7 @@ a {
 
 @media (max-width: 1100px) {
   .studio-shell.illustrated-hero {
+    --hero-art-bottom-gap: 72px;
     height: 100svh;
     min-height: 100svh;
     max-height: 100svh;
@@ -6818,6 +6828,7 @@ a {
   }
 
   .illustrated-hero-copy h1 {
+    max-width: 100%;
     font-size: clamp(42px, 8.5vw, 66px);
   }
 }
@@ -6842,7 +6853,8 @@ a {
   }
 
   .illustrated-hero-copy h1 {
-    font-size: clamp(38px, 11.5vw, 58px);
+    max-width: 360px;
+    font-size: clamp(36px, 10.2vw, 52px);
   }
 
   .illustrated-hero-work {

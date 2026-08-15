@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, jsonb, pgTable, serial, text } from "drizzle-orm/pg-core";
+import { index, integer, jsonb, pgTable, serial, text, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const contactSubmissions = pgTable("contact_submissions", {
   id: serial("id").primaryKey(),
@@ -189,6 +189,41 @@ export const portfolioScores = pgTable("portfolio_scores", {
   visibilityScore: integer("visibility_score").notNull(),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
 });
+
+export const portfolioScoreReadings = pgTable("portfolio_score_readings", {
+  id: serial("id").primaryKey(),
+  projectKey: text("project_key").notNull(),
+  url: text("url").notNull(),
+  capturedDay: text("captured_day").notNull(),
+  status: text("status", { enum: ["scored", "failed"] }).notNull(),
+  speedScore: integer("speed_score"),
+  reachScore: integer("reach_score"),
+  reliabilityScore: integer("reliability_score"),
+  visibilityScore: integer("visibility_score"),
+  source: text("source").notNull().default("pagespeed"),
+  errorMessage: text("error_message"),
+  capturedAt: text("captured_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
+}, (table) => ({
+  projectDayUnique: uniqueIndex("portfolio_score_readings_project_day_idx").on(table.projectKey, table.capturedDay),
+}));
+
+export const portfolioScoreAlerts = pgTable("portfolio_score_alerts", {
+  id: serial("id").primaryKey(),
+  projectKey: text("project_key").notNull(),
+  url: text("url").notNull(),
+  metric: text("metric", { enum: ["speed", "reach", "reliability", "visibility"] }).notNull(),
+  firstReadingId: integer("first_reading_id").notNull().references(() => portfolioScoreReadings.id),
+  secondReadingId: integer("second_reading_id").notNull().references(() => portfolioScoreReadings.id),
+  firstValue: integer("first_value").notNull(),
+  secondValue: integer("second_value").notNull(),
+  status: text("status", { enum: ["open", "acknowledged", "resolved"] }).notNull().default("open"),
+  acknowledgedAt: text("acknowledged_at"),
+  resolvedAt: text("resolved_at"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
+}, (table) => ({
+  projectMetricStatusIdx: index("portfolio_score_alerts_project_metric_status_idx").on(table.projectKey, table.metric, table.status),
+  triggerUnique: uniqueIndex("portfolio_score_alerts_trigger_unique_idx").on(table.projectKey, table.metric, table.secondReadingId),
+}));
 
 export const websiteTestRequests = pgTable("website_test_requests", {
   id: serial("id").primaryKey(),

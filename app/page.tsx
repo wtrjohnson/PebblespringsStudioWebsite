@@ -21,7 +21,7 @@ type ScoreKey = "speed" | "reach" | "reliability" | "visibility";
 type ScoreMetric = {
   key: ScoreKey;
   label: string;
-  value: number;
+  value: number | null;
 };
 
 type ScoreResult = {
@@ -30,13 +30,6 @@ type ScoreResult = {
   websiteTestId?: number;
   source?: "pagespeed" | "demo";
 };
-
-const FALLBACK_SCORES: ScoreMetric[] = [
-  { key: "speed", label: "Speed", value: 100 },
-  { key: "reach", label: "Reach", value: 94 },
-  { key: "reliability", label: "Reliability", value: 97 },
-  { key: "visibility", label: "Visibility", value: 98 },
-];
 
 const scoreLabels: Record<ScoreKey, string> = {
   speed: "Speed",
@@ -371,7 +364,7 @@ function ScoreRing({
   loading = false,
 }: {
   label: string;
-  score: number;
+  score: number | null;
   animate?: boolean;
   delay?: number;
   inverted?: boolean;
@@ -381,7 +374,7 @@ function ScoreRing({
   const radius = 46;
   const strokeWidth = 10;
   const circumference = 2 * Math.PI * radius;
-  const clampedScore = Math.max(0, Math.min(score, 100));
+  const clampedScore = score === null ? 0 : Math.max(0, Math.min(score, 100));
   const visiblePercent = loading ? 0.26 : animatedScore / 100;
   const color = loading
     ? "#777777"
@@ -469,7 +462,7 @@ function ScoreRing({
           pathLength={circumference}
         />
       </svg>
-      <strong>{loading ? "" : Math.round(animatedScore)}</strong>
+      <strong>{loading ? "" : score === null ? "—" : Math.round(animatedScore)}</strong>
       <span>{label}</span>
     </div>
   );
@@ -496,7 +489,7 @@ function PerformanceSection({
   const [reportStatus, setReportStatus] = useState<"closed" | "editing" | "sending" | "sent">("closed");
   const [reportErrorMessage, setReportErrorMessage] = useState("");
   const [shouldAnimateStudioScores, setShouldAnimateStudioScores] = useState(false);
-  const studioScores = usePortfolioScores(FALLBACK_SCORES);
+  const studioScores = usePortfolioScores();
   const performanceRef = useRef<HTMLDivElement | null>(null);
   const scorecardRef = useRef<HTMLElement | null>(null);
   const checkerRef = useRef<HTMLElement | null>(null);
@@ -1297,7 +1290,7 @@ export default function Home() {
             </header>
 
             <div className="illustrated-hero-copy">
-              <h1>Make your business<br />look as good as it is.</h1>
+              <h1>Make your<br />business look<br />as good as it is.</h1>
               <button className="illustrated-hero-work" type="button" onClick={() => moveToScene("about")}>
                 See how we work
               </button>
