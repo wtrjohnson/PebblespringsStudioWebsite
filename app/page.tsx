@@ -55,9 +55,9 @@ const scoreDescriptions: Record<ScoreKey, string> = {
 };
 
 const transitionEndings = [
-  "fast pages.",
-  "simple updates.",
-  "a site that feels like yours.",
+  "it loads fast.",
+  "it looks great.",
+  "it feels like yours.",
 ];
 
 const TRANSITION_TUNER_DEFAULTS = {
@@ -330,7 +330,7 @@ function TransitionStatement() {
       ref={transitionRef}
     >
       <div className="transition-copy">
-        <p className="transition-lead">That means</p>
+        <p className="transition-lead">To us, that means</p>
         <div className="transition-endings" aria-live="polite">
           {transitionEndings.map((ending, index) => (
             <p
