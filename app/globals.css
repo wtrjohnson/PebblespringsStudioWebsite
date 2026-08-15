@@ -4316,7 +4316,8 @@ a {
   --indicator-dot-size: 14px;
   position: absolute;
   left: 50%;
-  bottom: calc(var(--hero-control-center-bottom) - (var(--indicator-dot-size) / 2));
+  z-index: 8;
+  bottom: max(18px, calc(var(--portfolio-edge) - 30px));
   display: flex;
   align-items: center;
   gap: 6px;
@@ -4328,6 +4329,9 @@ a {
   bottom: max(
     8px,
     calc(((100% - var(--expanded-preview-height)) / 4) - (var(--indicator-dot-size) / 2))
+  );
+  transform: translateY(
+    clamp(0px, calc((var(--expanded-preview-height) - var(--portfolio-height)) / 2), 260px)
   );
 }
 
@@ -4938,9 +4942,9 @@ a {
   }
 
   .portfolio-stage.is-expanded .rail-indicator {
-    opacity: 0;
-    pointer-events: none;
-    visibility: hidden;
+    transform: translateY(
+      clamp(0px, calc((var(--expanded-preview-height) - var(--portfolio-height)) / 2), 260px)
+    );
   }
 
   .rail-indicator {
@@ -4948,7 +4952,7 @@ a {
     left: auto;
     bottom: auto;
     width: max-content;
-    margin: -18px auto 0;
+    margin: 12px auto 0;
     transform: none;
   }
 
@@ -5127,7 +5131,7 @@ a {
     left: auto;
     bottom: auto;
     gap: 6px;
-    margin-top: -14px;
+    margin-top: 12px;
   }
 
   .rail-indicator button {
@@ -5997,6 +6001,33 @@ a {
   flex-direction: column;
   align-items: flex-start;
   gap: 26px;
+}
+
+@media (min-width: 1101px) {
+  .portfolio-stage {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .portfolio-scroll {
+    height: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  .portfolio-stage .rail-indicator {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    flex: 0 0 auto;
+    margin: 0 auto 20px;
+    transform: none;
+    transition: none;
+  }
+
+  .portfolio-stage.is-expanded .rail-indicator {
+    bottom: auto;
+  }
 }
 
 .illustrated-hero-copy h1 {
