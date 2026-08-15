@@ -1038,12 +1038,12 @@ const HowWeWorkSection = forwardRef<HTMLElement, {
       copy: "Your site should load quickly and hold up under real use.",
     },
     {
-      title: "Sustainability",
-      copy: "You should be able to update the site without us.",
+      title: "Clarity",
+      copy: "People should understand what you do and why it matters.",
     },
     {
-      title: "Character",
-      copy: "Your site should fit the work behind it. We build around what makes your practice different.",
+      title: "Ownership",
+      copy: "You should be able to update the site without us.",
     },
   ];
 
