@@ -101,7 +101,7 @@ export async function capturePortfolioProjectScore(
     errorMessage = error instanceof Error ? error.message : "PageSpeed capture failed.";
   }
 
-  const [reading] = await db.insert(portfolioScoreReadings).values({
+  const insertedReadings = await db.insert(portfolioScoreReadings).values({
     projectKey: project.id,
     url: project.url,
     capturedDay,
@@ -113,7 +113,24 @@ export async function capturePortfolioProjectScore(
     source: "pagespeed",
     errorMessage,
     capturedAt,
+  }).onConflictDoNothing({
+    target: [portfolioScoreReadings.projectKey, portfolioScoreReadings.capturedDay],
   }).returning();
+
+  // Another invocation may have inserted today's row after our initial check.
+  // Treat that race as an idempotent success instead of failing the whole job.
+  const [reading] = insertedReadings.length > 0
+    ? insertedReadings
+    : await db.select().from(portfolioScoreReadings).where(and(
+        eq(portfolioScoreReadings.projectKey, project.id),
+        eq(portfolioScoreReadings.capturedDay, capturedDay),
+      )).limit(1);
+
+  if (!reading) {
+    throw new Error(`Unable to retrieve the daily reading for ${project.id}.`);
+  }
+
+  if (insertedReadings.length === 0) return reading;
 
   if (scores) {
     await db.insert(portfolioScores).values({
