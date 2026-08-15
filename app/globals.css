@@ -6713,13 +6713,20 @@ a {
 
 @media (max-width: 1100px) {
   .studio-shell.illustrated-hero {
+    height: 100svh;
     min-height: 100svh;
+    max-height: 100svh;
     background-position: 58% center;
   }
 
   .illustrated-hero-inner {
-    min-height: 100svh;
+    height: 100%;
+    min-height: 0;
     padding: 22px clamp(20px, 5vw, 42px) clamp(72px, 12vw, 110px);
+  }
+
+  .illustrated-hero-border {
+    height: clamp(58px, 14vw, 78px);
   }
 
   .illustrated-hero-header {
