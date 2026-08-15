@@ -1277,7 +1277,6 @@ export default function Home() {
           aria-label="Pebblesprings Studio home"
           ref={landingSceneRef}
         >
-          <img className="illustrated-hero-border" src="/WhiteBorder.svg" alt="" aria-hidden="true" />
           <div className="illustrated-hero-inner">
             <header className="illustrated-hero-header">
               <a className="illustrated-brand" href="#home" aria-label="Pebblesprings Studio home">
