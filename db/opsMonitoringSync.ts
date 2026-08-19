@@ -129,7 +129,7 @@ export async function syncOpsMonitoring(options: { ref?: string } = {}) {
   const uptimeRows = parseCsv(uptimeCsv || await fetchOpsFile("monitoring/uptime-log.csv", ref, true));
   const db = await getDb();
   const importedAt = new Date().toISOString();
-  const resolvedCommitSha = commitSha ?? (value(runRows[0] ?? {}, "commit_sha", "ops_commit_sha") || null);
+  const resolvedCommitSha = commitSha ?? (value(runRows.at(-1) ?? {}, "commit_sha", "ops_commit_sha") || null);
 
   if (resolvedCommitSha) {
     const [alreadyImported] = await db.select({ id: monitoringRuns.id }).from(monitoringRuns).where(eq(monitoringRuns.opsCommitSha, resolvedCommitSha)).limit(1);
