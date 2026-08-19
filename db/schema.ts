@@ -201,6 +201,10 @@ export const portfolioScoreReadings = pgTable("portfolio_score_readings", {
   reliabilityScore: integer("reliability_score"),
   visibilityScore: integer("visibility_score"),
   source: text("source").notNull().default("pagespeed"),
+  agent: text("agent").notNull().default("ref"),
+  opsCommitSha: text("ops_commit_sha"),
+  runId: text("run_id"),
+  reportData: jsonb("report_data"),
   errorMessage: text("error_message"),
   capturedAt: text("captured_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
 }, (table) => ({
@@ -216,6 +220,8 @@ export const portfolioScoreAlerts = pgTable("portfolio_score_alerts", {
   secondReadingId: integer("second_reading_id").notNull().references(() => portfolioScoreReadings.id),
   firstValue: integer("first_value").notNull(),
   secondValue: integer("second_value").notNull(),
+  opsAlertKey: text("ops_alert_key"),
+  recommendation: text("recommendation"),
   status: text("status", { enum: ["open", "acknowledged", "resolved"] }).notNull().default("open"),
   acknowledgedAt: text("acknowledged_at"),
   resolvedAt: text("resolved_at"),
@@ -223,6 +229,35 @@ export const portfolioScoreAlerts = pgTable("portfolio_score_alerts", {
 }, (table) => ({
   projectMetricStatusIdx: index("portfolio_score_alerts_project_metric_status_idx").on(table.projectKey, table.metric, table.status),
   triggerUnique: uniqueIndex("portfolio_score_alerts_trigger_unique_idx").on(table.projectKey, table.metric, table.secondReadingId),
+}));
+
+export const monitoringRuns = pgTable("monitoring_runs", {
+  id: serial("id").primaryKey(),
+  runId: text("run_id").notNull().unique(),
+  agent: text("agent", { enum: ["ref", "pulse"] }).notNull(),
+  status: text("status", { enum: ["succeeded", "failed", "partial"] }).notNull(),
+  startedAt: text("started_at").notNull(),
+  completedAt: text("completed_at"),
+  opsCommitSha: text("ops_commit_sha"),
+  importedAt: text("imported_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
+  errorMessage: text("error_message"),
+});
+
+export const uptimeReadings = pgTable("uptime_readings", {
+  id: serial("id").primaryKey(),
+  projectKey: text("project_key").notNull(),
+  url: text("url").notNull(),
+  capturedDay: text("captured_day").notNull(),
+  status: text("status", { enum: ["up", "down", "failed"] }).notNull(),
+  httpStatus: integer("http_status"),
+  responseTimeMs: integer("response_time_ms"),
+  agent: text("agent").notNull().default("pulse"),
+  opsCommitSha: text("ops_commit_sha"),
+  runId: text("run_id"),
+  errorMessage: text("error_message"),
+  capturedAt: text("captured_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
+}, (table) => ({
+  projectDayUnique: uniqueIndex("uptime_readings_project_day_idx").on(table.projectKey, table.capturedDay),
 }));
 
 export const websiteTestRequests = pgTable("website_test_requests", {

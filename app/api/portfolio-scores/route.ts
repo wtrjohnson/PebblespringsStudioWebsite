@@ -31,6 +31,12 @@ export async function GET() {
       return NextResponse.json({ status: "unavailable", scores: null, readingCount: 0 });
     }
 
+    const latestCapturedAt = readings.reduce((latest, reading) => reading.capturedAt > latest ? reading.capturedAt : latest, readings[0].capturedAt);
+    const isStale = Date.now() - Date.parse(latestCapturedAt) > 48 * 60 * 60 * 1000;
+    if (isStale) {
+      return NextResponse.json({ status: "stale", scores: null, readingCount: readings.length, latestCapturedAt, windowStart, windowEnd });
+    }
+
     const totals = readings.reduce((acc, reading) => {
       for (const key of SCORE_KEYS) {
         acc[key] += reading[SCORE_COLUMNS[key]] ?? 0;
@@ -42,6 +48,7 @@ export async function GET() {
       status: "available",
       scores: Object.fromEntries(SCORE_KEYS.map((key) => [key, Math.round(totals[key] / readings.length)])),
       readingCount: readings.length,
+      latestCapturedAt,
       windowStart,
       windowEnd,
     });

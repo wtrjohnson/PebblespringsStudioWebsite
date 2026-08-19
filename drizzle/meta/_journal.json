@@ -64,6 +64,13 @@
       "when": 1786040000000,
       "tag": "0008_portfolio_score_monitoring",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1786126400000,
+      "tag": "0009_ops_monitoring_import",
+      "breakpoints": true
     }
   ]
 }

@@ -20,6 +20,26 @@ npm run build
 - `public/og.png` is the generated social preview image.
 - `.openai/hosting.json` declares optional Sites resources.
 
+## Monitoring data sync
+
+Client monitoring is read into this app from `pebblesprings-ops`; the app does not run scheduled PageSpeed checks. Ref owns Lighthouse calls and Pulse owns uptime checks. The public `/api/lighthouse-score` endpoint is intentionally separate for on-demand checks of arbitrary URLs.
+
+Configure these deployment variables:
+
+- `PEBBLESPRINGS_OPS_REPO`: GitHub `owner/repository` for `pebblesprings-ops`.
+- `PEBBLESPRINGS_OPS_BRANCH`: canonical branch, normally `main`.
+- `PEBBLESPRINGS_OPS_GITHUB_TOKEN`: token if the ops repository is private.
+- `REF_SYNC_SECRET`: shared secret used by Ref to sign the JSON body `{ "commitSha": "..." }` with HMAC-SHA256 and send it as `x-ops-signature: sha256=...`.
+- `CRON_SECRET`: already used by Vercel; the reconciliation job sends it to `/api/cron/monitoring-sync`.
+
+Ref should commit these CSV files under `monitoring/`:
+
+- `lighthouse_scores.csv`: one row per `project_key` and `captured_day`, including `url`, `status`, `captured_at`, `run_id`, and the four score columns (`speed_score`, `reach_score`, `reliability_score`, `visibility_score`).
+- `lighthouse_alerts.csv`: alert rows with `alert_key`, `project_key`, `url`, `metric`, first/second captured days and values, `status`, and `recommendation`.
+- `runs.csv`: optional run metadata with `run_id`, `agent`, `status`, `started_at`, `completed_at`, and `error_message`.
+
+Pulse can add `uptime_checks.csv` with `project_key`, `url`, `captured_day`, `status`, `http_status`, `response_time_ms`, and the run fields. Ref calls `POST /api/monitoring/ops-sync` after pushing a commit; Vercel periodically calls `/api/cron/monitoring-sync` as a reconciliation fallback.
+
 ## Client Portal Admin
 
 The admin panel at `/admin` is how portal content gets written. It is unlinked from

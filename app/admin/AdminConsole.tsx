@@ -18,6 +18,7 @@ type ScoreAlert = {
   metric: "speed" | "reach" | "reliability" | "visibility";
   firstValue: number;
   secondValue: number;
+  recommendation: string | null;
   status: "open" | "acknowledged";
   createdAt: string;
 };
@@ -63,13 +64,11 @@ function ClientMeta({ line }: { line: AdminLine }) {
   );
 }
 
-export function AdminConsole({ initialLines }: { initialLines: AdminLine[] }) {
+export function AdminConsole({ initialLines, monitoring }: { initialLines: AdminLine[]; monitoring: Awaited<ReturnType<typeof import("../../db/opsMonitoringSync").getMonitoringFreshness>> }) {
   const router = useRouter();
   const pathname = usePathname() ?? "/admin";
   const searchParams = useSearchParams();
-  const [lines, setLines] = useState(initialLines);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [refreshError, setRefreshError] = useState("");
+  const lines = initialLines;
   const [updates, setUpdates] = useState<AdminUpdate[] | null>(null);
   const [approvals, setApprovals] = useState<AdminApproval[] | null>(null);
   const [loadedView, setLoadedView] = useState<{ projectId: number; view: "updates" | "approvals" } | null>(null);
@@ -149,44 +148,6 @@ export function AdminConsole({ initialLines }: { initialLines: AdminLine[] }) {
     router.replace(`${pathname}?client=${encodeURIComponent(selection)}&view=${nextView}`, { scroll: false });
   }
 
-  async function refreshScore() {
-    if (!selected?.projectId) return;
-    setIsRefreshing(true);
-    setRefreshError("");
-
-    try {
-      const response = await fetch("/api/admin/scores", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId: selected.projectId }),
-      });
-      const data = await response.json().catch(() => null) as {
-        error?: string;
-        score?: { speedScore: number; reachScore: number; reliabilityScore: number; visibilityScore: number; updatedAt: string };
-      } | null;
-
-      if (!response.ok || !data?.score) {
-        setRefreshError(data?.error ?? "Unable to refresh scores.");
-        return;
-      }
-
-      setLines((current) => current.map((line) => line.projectId === selected.projectId ? {
-        ...line,
-        scores: {
-          speed: data.score!.speedScore,
-          reach: data.score!.reachScore,
-          reliability: data.score!.reliabilityScore,
-          visibility: data.score!.visibilityScore,
-          updatedAt: data.score!.updatedAt,
-        },
-      } : line));
-    } catch {
-      setRefreshError("Unable to refresh scores.");
-    } finally {
-      setIsRefreshing(false);
-    }
-  }
-
   function renderDetails() {
     if (!selected) return null;
     return (
@@ -216,9 +177,7 @@ export function AdminConsole({ initialLines }: { initialLines: AdminLine[] }) {
         ) : <p className="admin-empty-state">This client has no active project.</p>}
         {selected.projectId ? <ProjectTabs current="detail" projectId={selected.projectId} onView={selectView} /> : null}
         <div className="admin-score-actions">
-          <span>{selected.scores.updatedAt ? `Scores updated ${formatDate(selected.scores.updatedAt)}` : "Scores not yet available"}</span>
-          <button className="admin-button" disabled={isRefreshing} onClick={refreshScore} type="button">{isRefreshing ? "Refreshing" : "Refresh scores"}</button>
-          {refreshError ? <span className="admin-error-inline" role="alert">{refreshError}</span> : null}
+          <span>{selected.scores.updatedAt ? `Scores imported ${formatDate(selected.scores.updatedAt)}` : "Scores not yet available"}</span>
         </div>
       </section>
     );
@@ -268,6 +227,7 @@ export function AdminConsole({ initialLines }: { initialLines: AdminLine[] }) {
           <article className="admin-score-alert" key={alert.id}>
             <div><strong>{alert.projectKey}</strong><span>{scoreAlertLabels[alert.metric]} below 90 for two daily readings</span></div>
             <div><span>{alert.firstValue} → {alert.secondValue}</span><span>{formatDate(alert.createdAt)}</span></div>
+            {alert.recommendation ? <p>{alert.recommendation}</p> : null}
             <div className="admin-score-alert-actions">
               {alert.status === "open" ? <button className="admin-button" disabled={updatingAlertId === alert.id} onClick={() => updateScoreAlert(alert.id, "acknowledged")} type="button">Acknowledge</button> : null}
               <button className="admin-button" disabled={updatingAlertId === alert.id} onClick={() => updateScoreAlert(alert.id, "resolved")} type="button">Resolve</button>
@@ -277,6 +237,11 @@ export function AdminConsole({ initialLines }: { initialLines: AdminLine[] }) {
       </section>
       {selected ? <div className="admin-console-title"><h1 id="selected-client-title">{selected.clientName}</h1></div> : <div className="admin-no-client-title"><h1>Select a Client</h1></div>}
       {selected ? renderView() : null}
+      <div className="admin-monitoring-status">
+        <span>Ref: {monitoring.ref?.completedAt ? `last run ${formatDate(monitoring.ref.completedAt)}` : "waiting for first import"}</span>
+        <span>Pulse: {monitoring.pulse?.completedAt ? `last run ${formatDate(monitoring.pulse.completedAt)}` : "waiting for first import"}</span>
+        <span>Ops commit: {monitoring.imported?.opsCommitSha ? monitoring.imported.opsCommitSha.slice(0, 7) : "—"}</span>
+      </div>
       <ClientMatrix lines={lines} onSelect={select} selectedClientId={selected?.clientId ?? null} />
     </div>
   );

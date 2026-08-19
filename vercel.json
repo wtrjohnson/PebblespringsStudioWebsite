@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
-      "path": "/api/cron/portfolio-scores",
+      "path": "/api/cron/monitoring-sync",
       "schedule": "0 6 * * *"
     }
   ]

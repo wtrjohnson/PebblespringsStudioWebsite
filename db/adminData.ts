@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { getDb } from "./index";
+import { getMonitoringFreshness } from "./opsMonitoringSync";
 import { portalApprovals, portalClients, portalProjects, portalUpdates, portfolioScores } from "./schema";
 
 const KNOWN_SITE_URLS: Record<string, string> = {
@@ -61,6 +62,7 @@ export type LedgerOverview = {
     awaitingReply: number;
     drafts: number;
   };
+  monitoring: Awaited<ReturnType<typeof getMonitoringFreshness>>;
 };
 
 /**
@@ -309,5 +311,6 @@ export async function getLedgerOverview(): Promise<LedgerOverview> {
       awaitingReply: lines.reduce((sum, line) => sum + line.awaitingReply, 0),
       drafts: lines.reduce((sum, line) => sum + line.drafts, 0),
     },
+    monitoring: await getMonitoringFreshness(),
   };
 }
