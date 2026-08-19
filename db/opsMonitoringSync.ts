@@ -255,7 +255,19 @@ export async function syncOpsMonitoring(options: { ref?: string } = {}) {
       runId: value(row, "run_id", "runId") || `pulse:${checkedAt.slice(0, 10)}`,
       errorMessage: value(row, "error_message", "errorMessage", "notes") || null,
       capturedAt: checkedAt,
-    }).onConflictDoNothing({ target: [uptimeReadings.projectKey, uptimeReadings.capturedDay] });
+    }).onConflictDoUpdate({
+      target: [uptimeReadings.projectKey, uptimeReadings.capturedDay],
+      set: {
+        url: canonicalUrl(site),
+        status: httpStatus === 200 ? "up" : httpStatus === null ? "failed" : "down",
+        httpStatus,
+        responseTimeMs: integer(row, "response_time_ms", "responseTimeMs"),
+        opsCommitSha: resolvedCommitSha,
+        runId: value(row, "run_id", "runId") || `pulse:${checkedAt.slice(0, 10)}`,
+        errorMessage: value(row, "error_message", "errorMessage", "notes") || null,
+        capturedAt: checkedAt,
+      },
+    });
   }
 
   if (runRows.length === 0 && normalizedLighthouseRows.size > 0) {
