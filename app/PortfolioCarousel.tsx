@@ -1,17 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { CSSProperties, FocusEvent, MouseEvent, PointerEvent } from "react";
+import type { CSSProperties, FocusEvent, MouseEvent } from "react";
 import type { PortfolioProject } from "./portfolioData.ts";
 import { carouselProjects as allPortfolioProjects } from "./portfolioData.ts";
 import { animateScroll } from "./scrollMotion.ts";
 
 const ROTATION_MS = 5200;
 const INTRO_ROTATION_MS = 8200;
-const HOVER_INTENT_MS = 150;
-const CARD_SCROLL_OFFSET = 66;
-
-type ExpandedProjectState = {
+type OverlayState = {
   projectId: string | null;
   activationMode: "pointer" | "keyboard" | "mobile" | null;
 };
@@ -21,43 +18,46 @@ const carouselProjects = allPortfolioProjects.filter((project) => !project.isPro
 export function PortfolioCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [expandedProject, setExpandedProject] = useState<ExpandedProjectState>({
+  const [expandedProject, setExpandedProject] = useState<OverlayState>({
     projectId: null,
     activationMode: null,
   });
-  const [expandedAnchorIndex, setExpandedAnchorIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<Array<HTMLElement | null>>([]);
   const scrollFrameRef = useRef<number | null>(null);
   const autoScrollCancelRef = useRef<(() => void) | null>(null);
   const isAutoScrollingRef = useRef(false);
   const autoScrollTimeoutRef = useRef<number | null>(null);
-  const expandedAlignmentFrameRef = useRef<number | null>(null);
   const isPausedRef = useRef(false);
   const remainingMsRef = useRef(ROTATION_MS);
   const rotationStartedAtRef = useRef(0);
   const rotationTimeoutRef = useRef<number | null>(null);
-  const hoverTimeoutRef = useRef<number | null>(null);
-  const lockedScrollLeftRef = useRef(0);
-  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const expandedProjectId = expandedProject.projectId;
-  const isCarouselLocked = expandedProjectId !== null;
   const expandedPreviewIndex = expandedProjectId
     ? carouselProjects.findIndex((project) => project.id === expandedProjectId)
     : -1;
   const expandedPreviewProject = expandedPreviewIndex >= 0 ? carouselProjects[expandedPreviewIndex] : null;
-  const isMobileSheetOpen = expandedProject.activationMode === "mobile" && expandedPreviewProject !== null;
+  const isOverlayActive = expandedProjectId !== null;
 
   function getRotationDelay(index: number) {
     return carouselProjects[index]?.isProposition ? INTRO_ROTATION_MS : ROTATION_MS;
+  }
+
+  function getCenteredScrollLeft(scrollContainer: HTMLDivElement, card: HTMLElement) {
+    const centeredScrollLeft = card.offsetLeft - (scrollContainer.clientWidth - card.offsetWidth) / 2;
+
+    return Math.min(
+      Math.max(0, centeredScrollLeft),
+      Math.max(0, scrollContainer.scrollWidth - scrollContainer.clientWidth),
+    );
   }
 
   useEffect(() => {
     const scrollContainer = scrollRef.current;
     const card = cardRefs.current[activeIndex];
 
-    if (!scrollContainer || !card || isCarouselLocked) {
+    if (!scrollContainer || !card || isOverlayActive) {
       return;
     }
 
@@ -67,7 +67,7 @@ export function PortfolioCarousel() {
     autoScrollCancelRef.current = animateScroll({
       target: scrollContainer,
       axis: "left",
-      to: card.offsetLeft - CARD_SCROLL_OFFSET,
+      to: getCenteredScrollLeft(scrollContainer, card),
       duration: 760,
     });
 
@@ -79,7 +79,7 @@ export function PortfolioCarousel() {
       isAutoScrollingRef.current = false;
       autoScrollCancelRef.current = null;
     }, 700);
-  }, [activeIndex, isCarouselLocked]);
+  }, [activeIndex, isOverlayActive]);
 
   function clearRotationTimeout() {
     if (rotationTimeoutRef.current !== null) {
@@ -116,7 +116,7 @@ export function PortfolioCarousel() {
   }
 
   function resumeRotation() {
-    if (!isPausedRef.current || isCarouselLocked) {
+    if (!isPausedRef.current) {
       return;
     }
 
@@ -126,11 +126,6 @@ export function PortfolioCarousel() {
   }
 
   useEffect(() => {
-    if (isCarouselLocked) {
-      clearRotationTimeout();
-      return;
-    }
-
     if (isPausedRef.current) {
       isPausedRef.current = false;
       setIsPaused(false);
@@ -140,7 +135,7 @@ export function PortfolioCarousel() {
     scheduleRotation(remainingMsRef.current);
 
     return clearRotationTimeout;
-  }, [activeIndex, isCarouselLocked]);
+  }, [activeIndex]);
 
   useEffect(() => {
     return () => {
@@ -152,45 +147,11 @@ export function PortfolioCarousel() {
         window.clearTimeout(autoScrollTimeoutRef.current);
       }
 
-      if (expandedAlignmentFrameRef.current !== null) {
-        window.cancelAnimationFrame(expandedAlignmentFrameRef.current);
-      }
-
       autoScrollCancelRef.current?.();
 
       clearRotationTimeout();
-      clearHoverTimeout();
     };
   }, []);
-
-  useEffect(() => {
-    if (!isCarouselLocked) {
-      return;
-    }
-
-    const scrollContainer = scrollRef.current;
-
-    if (!scrollContainer) {
-      return;
-    }
-
-    lockedScrollLeftRef.current = scrollContainer.scrollLeft;
-    pauseRotation();
-  }, [isCarouselLocked]);
-
-  useEffect(() => {
-    if (isCarouselLocked) {
-      return;
-    }
-
-    const scrollContainer = scrollRef.current;
-
-    if (!scrollContainer) {
-      return;
-    }
-
-    scrollContainer.scrollLeft = lockedScrollLeftRef.current;
-  }, [isCarouselLocked]);
 
   useEffect(() => {
     if (!expandedProjectId) {
@@ -198,7 +159,7 @@ export function PortfolioCarousel() {
     }
 
     function getExpandedAnchorCard() {
-      return expandedAnchorIndex === null ? null : cardRefs.current[expandedAnchorIndex];
+      return expandedPreviewIndex < 0 ? null : cardRefs.current[expandedPreviewIndex];
     }
 
     function handleDocumentPointerMove(event: globalThis.PointerEvent) {
@@ -221,11 +182,6 @@ export function PortfolioCarousel() {
       const previewRect =
         activeCard.querySelector(".expanded-project-preview")?.getBoundingClientRect() ??
         activeCard.getBoundingClientRect();
-      const isInsideNextButtonSafeZone =
-        event.clientX >= previewRect.right &&
-        event.clientX <= previewRect.right + 172 &&
-        event.clientY >= previewRect.top &&
-        event.clientY <= previewRect.bottom;
       const indicatorRect = document.querySelector(".rail-indicator")?.getBoundingClientRect();
       const isInsideIndicatorSafeZone = indicatorRect
         ? event.clientX >= indicatorRect.left - 16 &&
@@ -236,7 +192,6 @@ export function PortfolioCarousel() {
 
       if (
         !activeCard.contains(target) &&
-        !isInsideNextButtonSafeZone &&
         !isInsideIndicatorSafeZone
       ) {
         collapseProject();
@@ -257,12 +212,12 @@ export function PortfolioCarousel() {
       document.removeEventListener("pointermove", handleDocumentPointerMove);
       document.removeEventListener("keydown", handleDocumentKeyDown);
     };
-  }, [expandedAnchorIndex, expandedProject.activationMode, expandedProjectId]);
+  }, [expandedPreviewIndex, expandedProject.activationMode, expandedProjectId]);
 
   function syncActiveToScroll() {
     const scrollContainer = scrollRef.current;
 
-    if (!scrollContainer || isCarouselLocked || isAutoScrollingRef.current || scrollFrameRef.current !== null) {
+    if (!scrollContainer || isAutoScrollingRef.current || scrollFrameRef.current !== null) {
       return;
     }
 
@@ -278,8 +233,12 @@ export function PortfolioCarousel() {
           return index;
         }
 
-        const currentDistance = Math.abs(scrollContainer.scrollLeft - currentCard.offsetLeft + CARD_SCROLL_OFFSET);
-        const nextDistance = Math.abs(scrollContainer.scrollLeft - card.offsetLeft + CARD_SCROLL_OFFSET);
+        const currentDistance = Math.abs(
+          scrollContainer.scrollLeft - getCenteredScrollLeft(scrollContainer, currentCard),
+        );
+        const nextDistance = Math.abs(
+          scrollContainer.scrollLeft - getCenteredScrollLeft(scrollContainer, card),
+        );
 
         return nextDistance < currentDistance ? index : closestIndex;
       }, 0);
@@ -289,76 +248,12 @@ export function PortfolioCarousel() {
     });
   }
 
-  function clearHoverTimeout() {
-    if (hoverTimeoutRef.current !== null) {
-      window.clearTimeout(hoverTimeoutRef.current);
-      hoverTimeoutRef.current = null;
-    }
-  }
-
-  function centerExpandedCard(index: number) {
-    const scrollContainer = scrollRef.current;
-    const card = cardRefs.current[index];
-
-    if (!scrollContainer || !card) {
-      return;
-    }
-
-    const centeredScrollLeft = card.offsetLeft - (scrollContainer.clientWidth - card.offsetWidth) / 2;
-    const targetScrollLeft = Math.min(
-      Math.max(0, centeredScrollLeft),
-      Math.max(0, scrollContainer.scrollWidth - scrollContainer.clientWidth),
-    );
-
-    scrollContainer.scrollLeft = targetScrollLeft;
-  }
-
-  function scheduleExpandedCardCenter(index: number) {
-    if (expandedAlignmentFrameRef.current !== null) {
-      window.cancelAnimationFrame(expandedAlignmentFrameRef.current);
-    }
-
-    let startedAt = 0;
-    const trackCenter = (timestamp: number) => {
-      if (!startedAt) {
-        startedAt = timestamp;
-      }
-
-      centerExpandedCard(index);
-
-      if (timestamp - startedAt < 720) {
-        expandedAlignmentFrameRef.current = window.requestAnimationFrame(trackCenter);
-      } else {
-        expandedAlignmentFrameRef.current = null;
-      }
-    };
-
-    expandedAlignmentFrameRef.current = window.requestAnimationFrame(trackCenter);
-  }
-
-  function expandProject(projectId: string, activationMode: ExpandedProjectState["activationMode"], anchorIndex: number) {
-    const scrollContainer = scrollRef.current;
-
-    if (scrollContainer) {
-      lockedScrollLeftRef.current = scrollContainer.scrollLeft;
-    }
-
+  function expandProject(projectId: string, activationMode: OverlayState["activationMode"]) {
     pauseRotation();
-    setExpandedAnchorIndex(anchorIndex);
     setExpandedProject({ projectId, activationMode });
-
-    if (activationMode === "pointer" || activationMode === "keyboard") {
-      scheduleExpandedCardCenter(anchorIndex);
-    }
-  }
-
-  function openMobileProject(projectId: string, anchorIndex: number) {
-    expandProject(projectId, "mobile", anchorIndex);
   }
 
   function collapseProject() {
-    clearHoverTimeout();
-    setExpandedAnchorIndex(null);
     setExpandedProject({ projectId: null, activationMode: null });
   }
 
@@ -383,89 +278,18 @@ export function PortfolioCarousel() {
     setActiveIndex(index);
   }
 
-  function getNextExpandableProjectIndex(index: number) {
-    const expandableIndexes = carouselProjects
-      .map((project, projectIndex) => (project.isProposition ? -1 : projectIndex))
-      .filter((projectIndex) => projectIndex >= 0);
-    const currentPosition = expandableIndexes.indexOf(index);
-
-    if (currentPosition === -1) {
-      return expandableIndexes[0] ?? index;
-    }
-
-    return expandableIndexes[(currentPosition + 1) % expandableIndexes.length] ?? index;
-  }
-
-  function getPreviousExpandableProjectIndex(index: number) {
-    const expandableIndexes = carouselProjects
-      .map((project, projectIndex) => (project.isProposition ? -1 : projectIndex))
-      .filter((projectIndex) => projectIndex >= 0);
-    const currentPosition = expandableIndexes.indexOf(index);
-
-    if (currentPosition <= 0) {
-      return expandableIndexes[expandableIndexes.length - 1] ?? index;
-    }
-
-    return expandableIndexes[currentPosition - 1] ?? index;
-  }
-
-  function showNextExpandedProject() {
-    const nextIndex = getNextExpandableProjectIndex(expandedPreviewIndex);
-    const nextProject = carouselProjects[nextIndex];
-
-    if (!nextProject || nextProject.isProposition) {
-      return;
-    }
-
-    clearHoverTimeout();
-    remainingMsRef.current = getRotationDelay(nextIndex);
-    pauseRotation();
-    setActiveIndex(nextIndex);
-    setExpandedAnchorIndex(nextIndex);
-    setExpandedProject({
-      projectId: nextProject.id,
-      activationMode: expandedProject.activationMode ?? "pointer",
-    });
-
-    scheduleExpandedCardCenter(nextIndex);
-  }
-
-  function showPreviousExpandedProject() {
-    const previousIndex = getPreviousExpandableProjectIndex(expandedPreviewIndex);
-    const previousProject = carouselProjects[previousIndex];
-
-    if (!previousProject || previousProject.isProposition) {
-      return;
-    }
-
-    clearHoverTimeout();
-    remainingMsRef.current = getRotationDelay(previousIndex);
-    pauseRotation();
-    setActiveIndex(previousIndex);
-    setExpandedAnchorIndex(previousIndex);
-    setExpandedProject({
-      projectId: previousProject.id,
-      activationMode: expandedProject.activationMode ?? "pointer",
-    });
-    scheduleExpandedCardCenter(previousIndex);
-  }
 
   function handleCardPointerEnter(project: PortfolioProject, index: number) {
     if (project.isProposition || !isActiveProject(index) || !canHover()) {
       return;
     }
 
-    clearHoverTimeout();
     pauseRotation();
-    hoverTimeoutRef.current = window.setTimeout(() => {
-      expandProject(project.id, "pointer", index);
-    }, HOVER_INTENT_MS);
+    expandProject(project.id, "pointer");
   }
 
-  function handleCardPointerLeave(index: number) {
-    clearHoverTimeout();
-
-    if (expandedAnchorIndex === index && expandedProject.activationMode === "pointer") {
+  function handleCardPointerLeave(project: PortfolioProject) {
+    if (expandedProjectId === project.id && expandedProject.activationMode === "pointer") {
       collapseProject();
       resumeRotation();
       return;
@@ -490,7 +314,7 @@ export function PortfolioCarousel() {
       return;
     }
 
-    expandProject(project.id, "keyboard", index);
+    expandProject(project.id, "keyboard");
   }
 
   function handleCardBlur(event: FocusEvent<HTMLElement>, project: PortfolioProject, index: number) {
@@ -498,7 +322,7 @@ export function PortfolioCarousel() {
       return;
     }
 
-    if (expandedAnchorIndex === index && expandedProject.activationMode === "keyboard") {
+    if (expandedProjectId === project.id && expandedProject.activationMode === "keyboard") {
       collapseProject();
       resumeRotation();
       return;
@@ -509,30 +333,9 @@ export function PortfolioCarousel() {
     }
   }
 
-  function handlePointerDown(event: PointerEvent) {
-    pointerStartRef.current = {
-      x: event.clientX,
-      y: event.clientY,
-    };
-  }
-
-  function shouldTreatAsTap(event: PointerEvent) {
-    const start = pointerStartRef.current;
-
-    if (!start) {
-      return true;
-    }
-
-    const distance = Math.hypot(event.clientX - start.x, event.clientY - start.y);
-    pointerStartRef.current = null;
-
-    return distance < 10;
-  }
-
   function handlePreviewClick(event: MouseEvent<HTMLAnchorElement>, project: PortfolioProject, index: number) {
-    if (!isCarouselLocked && !isActiveProject(index) && isOnDeckProject(index)) {
+    if (!isActiveProject(index) && isOnDeckProject(index)) {
       event.preventDefault();
-      clearHoverTimeout();
       activateCarouselIndex(index);
       return;
     }
@@ -547,7 +350,7 @@ export function PortfolioCarousel() {
 
     if (expandedProjectId !== project.id) {
       event.preventDefault();
-      openMobileProject(project.id, index);
+      expandProject(project.id, "mobile");
     }
   }
 
@@ -557,62 +360,25 @@ export function PortfolioCarousel() {
     ));
   }
 
-  function renderMedia(project: PortfolioProject) {
-    return (project.media ?? []).map((item) => {
-      if (item.kind === "video") {
-        return (
-          <video
-            className={`expanded-media-item ${item.className ?? ""}`}
-            key={item.id}
-            muted
-            playsInline
-            poster={item.poster}
-          >
-            <source src={item.src} />
-          </video>
-        );
-      }
-
-      return (
-        <img
-          className={`expanded-media-item ${item.className ?? ""}`}
-          key={item.id}
-          src={item.src}
-          alt={item.alt}
-        />
-      );
-    });
-  }
 
   return (
     <section
-      className={`portfolio-stage${isPaused ? " is-paused" : ""}${isCarouselLocked ? " is-expanded" : ""}`}
+      className={`portfolio-stage${isPaused ? " is-paused" : ""}${expandedProjectId ? " is-expanded" : ""}${isOverlayActive ? " is-overlay-active" : ""}`}
       id="portfolio-carousel"
       aria-label="Pebblesprings Studio portfolio"
     >
       <div className="portfolio-gallery-heading">
-        <h2>Selected work</h2>
+        <h2>Portfolio</h2>
       </div>
       <div
         className="portfolio-scroll"
         onScroll={syncActiveToScroll}
-        onWheel={(event) => {
-          if (isCarouselLocked) {
-            event.preventDefault();
-          }
-        }}
-        onTouchMove={(event) => {
-          if (isCarouselLocked) {
-            event.preventDefault();
-          }
-        }}
         ref={scrollRef}
       >
-        <div className="work-rail" id="work" aria-label="Selected work">
+        <div className="work-rail" id="work" aria-label="Portfolio">
           {carouselProjects.map((project, index) => {
-            const isExpandedAnchor = expandedProjectId !== null && expandedAnchorIndex === index;
+            const isExpandedAnchor = expandedPreviewIndex === index;
             const previewProject = isExpandedAnchor && expandedPreviewProject ? expandedPreviewProject : project;
-            const previewIndex = isExpandedAnchor && expandedPreviewIndex >= 0 ? expandedPreviewIndex : index;
 
             return (
             <article
@@ -622,9 +388,8 @@ export function PortfolioCarousel() {
                 "work-card",
                 project.isProposition ? "work-card-proposition" : "work-card-project",
                 isActiveProject(index) ? "is-active-project" : "",
-                isNextProject(index) && !isCarouselLocked ? "is-next-project" : "",
+                isNextProject(index) ? "is-next-project" : "",
                 isExpandedAnchor ? "is-expanded" : "",
-                expandedProjectId && !isExpandedAnchor ? "is-hidden-while-expanded" : "",
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -632,14 +397,8 @@ export function PortfolioCarousel() {
               key={project.id}
               onBlur={(event) => handleCardBlur(event, project, index)}
               onFocus={(event) => handleCardFocus(event, project, index)}
-              onPointerDown={handlePointerDown}
               onPointerEnter={() => handleCardPointerEnter(project, index)}
-              onPointerLeave={() => handleCardPointerLeave(index)}
-              onPointerUp={(event) => {
-                if (!shouldTreatAsTap(event)) {
-                  clearHoverTimeout();
-                }
-              }}
+              onPointerLeave={() => handleCardPointerLeave(project)}
               ref={(node) => {
                 cardRefs.current[index] = node;
               }}
@@ -677,19 +436,18 @@ export function PortfolioCarousel() {
                     aria-label={`Open ${previewProject.title} project website in a new tab`}
                     className={[
                       "expanded-project-preview",
-                      `expanded-layout-${previewProject.expandedLayout ?? "stacked-showcase"}`,
+                      "expanded-layout-case-study",
                     ].join(" ")}
                     href={previewProject.url}
                     id={`expanded-preview-${index}`}
                     onClick={(event) => {
                       if (!canHover() && expandedProjectId !== previewProject.id) {
                         event.preventDefault();
-                        expandProject(previewProject.id, "touch", index);
+                        expandProject(previewProject.id, "mobile");
                       }
                     }}
                     rel="noopener noreferrer"
                     style={{
-                      "--expanded-background": previewProject.expandedBackground ?? "#000000",
                       "--statement-color": previewProject.statementColor ?? "#ffffff",
                     } as CSSProperties}
                     target="_blank"
@@ -701,14 +459,6 @@ export function PortfolioCarousel() {
                       </span>
                     </span>
 
-                    <span
-                      className="expanded-media"
-                      aria-label={`${previewProject.title} project preview`}
-                      key={`${previewProject.id}-media`}
-                    >
-                      {renderMedia(previewProject)}
-                    </span>
-
                     <span className="expanded-scope" key={`${previewProject.id}-scope`}>
                       <span>Scope:</span>
                       {(previewProject.scope ?? []).map((item) => (
@@ -717,32 +467,6 @@ export function PortfolioCarousel() {
                     </span>
 
                   </a>
-                  <button
-                    aria-label={`Preview previous project: ${
-                      carouselProjects[getPreviousExpandableProjectIndex(previewIndex)]?.title ?? "previous project"
-                    }`}
-                    className="expanded-back"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      showPreviousExpandedProject();
-                    }}
-                    type="button"
-                  >
-                    <span>←</span>
-                  </button>
-                  <button
-                    aria-label={`Preview next project: ${
-                      carouselProjects[getNextExpandableProjectIndex(previewIndex)]?.title ?? "next project"
-                    }`}
-                    className="expanded-next"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      showNextExpandedProject();
-                    }}
-                    type="button"
-                  >
-                    <span>→</span>
-                  </button>
                 </>
               ) : null}
             </article>
@@ -750,61 +474,6 @@ export function PortfolioCarousel() {
           })}
         </div>
       </div>
-
-      {isMobileSheetOpen ? (
-        <div
-          aria-labelledby="mobile-project-sheet-title"
-          aria-modal="true"
-          className="mobile-project-sheet"
-          data-mobile-theme={expandedPreviewProject.expandedBackground === "#000000" ? "dark" : "light"}
-          role="dialog"
-          style={{
-            "--expanded-background": expandedPreviewProject.expandedBackground ?? "#000000",
-            "--statement-color": expandedPreviewProject.statementColor ?? "#ffffff",
-          } as CSSProperties}
-        >
-          <div className="mobile-project-sheet-scroll">
-            <div className="mobile-project-sheet-controls">
-              <button
-                aria-label={`Close ${expandedPreviewProject.title} project preview`}
-                className="mobile-project-close"
-                onClick={collapseProject}
-                type="button"
-              >
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-
-            <div className="mobile-project-sheet-heading">
-              <h2 id="mobile-project-sheet-title">{expandedPreviewProject.title}</h2>
-              <p>{renderProjectStatement(expandedPreviewProject)}</p>
-            </div>
-
-            <img
-              className="mobile-project-hero"
-              src={expandedPreviewProject.media?.[0]?.src ?? expandedPreviewProject.image}
-              alt={expandedPreviewProject.media?.[0]?.alt ?? `${expandedPreviewProject.title} website screenshot`}
-            />
-
-            <div className="mobile-project-meta">
-              <div className="mobile-project-scope">
-                <span>Scope</span>
-                {(expandedPreviewProject.scope ?? []).map((item) => (
-                  <strong key={item}>{item}</strong>
-                ))}
-              </div>
-              <div className="mobile-project-actions">
-                <button onClick={showNextExpandedProject} type="button">
-                  Next
-                </button>
-                <a href={expandedPreviewProject.url} rel="noopener noreferrer" target="_blank">
-                  Visit Site
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       <div className="rail-indicator" aria-label="Portfolio piece">
         {carouselProjects.map((project, index) => (
@@ -818,10 +487,9 @@ export function PortfolioCarousel() {
               .filter(Boolean)
               .join(" ")}
             key={project.title}
-            disabled={isCarouselLocked}
             onClick={() => {
-              if (isCarouselLocked) {
-                return;
+              if (expandedProjectId) {
+                collapseProject();
               }
 
               activateCarouselIndex(index);

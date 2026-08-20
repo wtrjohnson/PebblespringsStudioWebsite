@@ -9,8 +9,6 @@ export type PortfolioProject = {
   image: string;
   logo: string;
   url: string;
-  expandedBackground?: string;
-  expandedLayout?: "slipstream-editorial" | "albert-archive" | "rene-piano" | "stacked-showcase";
   media?: ProjectMediaItem[];
   isProposition?: boolean;
 };
@@ -45,8 +43,6 @@ export const carouselProjects: PortfolioProject[] = [
     image: "/SlipstreamAdvocacy-Portfolio-1.png",
     logo: "/Slipstream-Logo.svg",
     url: "https://slipstreamadvocacy.com",
-    expandedBackground: "#000000",
-    expandedLayout: "slipstream-editorial",
     media: [
       {
         id: "homepage",
@@ -82,8 +78,6 @@ export const carouselProjects: PortfolioProject[] = [
     image: "/AlbertRozin-Portfolio-2.png",
     logo: "/AR-Logo.png",
     url: "https://albertrozin.com",
-    expandedBackground: "var(--warm-paper)",
-    expandedLayout: "albert-archive",
     media: [
       {
         id: "homepage",
@@ -112,8 +106,6 @@ export const carouselProjects: PortfolioProject[] = [
     image: "/RJohnsonPiano-Portfolio-3.png",
     logo: "/RJpiano-Logo.png",
     url: "https://rjohnsonpiano.com",
-    expandedBackground: "#efe7e1",
-    expandedLayout: "rene-piano",
     media: [
       {
         id: "homepage",
@@ -140,8 +132,6 @@ export const carouselProjects: PortfolioProject[] = [
     image: "/CPS-Portfolio-4.png",
     logo: "/CPS-Logo.png",
     url: "https://clearpolicystrategies.com",
-    expandedBackground: "var(--warm-paper)",
-    expandedLayout: "stacked-showcase",
     media: [
       {
         id: "homepage",

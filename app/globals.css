@@ -2,6 +2,7 @@
   --ink: #15110e;
   --white: #ffffff;
   --warm-paper: #f7f5f0;
+  --portfolio-card-background: #efe7e1;
   --stone: #e4e3de;
   --muted-ink: #6b6a64;
   --deep-green: #0a6c64;
@@ -2029,7 +2030,7 @@ a {
   -ms-overflow-style: none;
 }
 
-.portfolio-stage.is-expanded .portfolio-scroll {
+.portfolio-stage.is-expanded:not(.is-overlay-active) .portfolio-scroll {
   overflow: hidden;
   touch-action: none;
 }
@@ -2101,7 +2102,7 @@ a {
   aspect-ratio: 2690.53 / 1468.24;
   overflow: hidden;
   border: 0;
-  background: var(--paper);
+  background: var(--portfolio-card-background);
   color: inherit;
   transition:
     opacity 260ms ease,
@@ -2189,7 +2190,7 @@ a {
   overflow: hidden;
   isolation: isolate;
   border-radius: var(--preview-radius);
-  background: var(--expanded-background);
+  background: var(--portfolio-card-background);
   color: var(--paper);
   opacity: 0;
   pointer-events: none;
@@ -2627,6 +2628,182 @@ a {
   bottom: 12%;
   max-width: 22%;
   font-size: clamp(22px, 2.25vw, 30px);
+}
+
+/* A shared case-study frame keeps every expanded project easy to scan:
+   message first, primary preview second, supporting preview third. */
+.expanded-layout-case-study {
+  color: var(--foreground);
+}
+
+.expanded-layout-case-study .expanded-copy {
+  top: clamp(54px, 8%, 66px);
+  left: var(--expanded-pad);
+  width: 25.3%;
+  max-width: 244px;
+  z-index: 3;
+}
+
+.expanded-layout-case-study .expanded-title {
+  font-size: clamp(31px, 2.4vw, 36px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.expanded-layout-case-study .expanded-statement {
+  max-width: 244px;
+  margin-top: clamp(24px, 3.2vw, 34px);
+  font-size: clamp(28px, 2.6vw, 38px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.expanded-layout-case-study .expanded-media-item:first-child {
+  top: clamp(28px, 4%, 38px);
+  right: 3.4%;
+  width: 63%;
+  aspect-ratio: 2690.53 / 1468.24;
+  object-fit: contain;
+}
+
+.expanded-layout-case-study .expanded-media-item:nth-child(2) {
+  left: 0;
+  top: calc(clamp(28px, 4%, 38px) + 49.2% + 18px);
+  bottom: auto;
+  width: 58%;
+  aspect-ratio: 3024 / 1644;
+  object-fit: contain;
+}
+
+.expanded-layout-case-study .expanded-media-item:nth-child(3) {
+  right: 5%;
+  bottom: clamp(44px, 7%, 62px);
+  width: 9%;
+  aspect-ratio: 1170 / 2204;
+  object-fit: contain;
+}
+
+.expanded-layout-case-study .expanded-scope {
+  top: auto;
+  width: auto;
+  height: auto;
+  aspect-ratio: auto;
+  right: 5.6%;
+  bottom: 7.6%;
+  max-width: 25.3%;
+  color: var(--foreground);
+  font-size: clamp(18px, 1.8vw, 26px);
+  line-height: 1.08;
+}
+
+.expanded-layout-case-study .expanded-scope span {
+  color: rgba(21, 17, 14, 0.56);
+}
+
+/* Portfolio overlay state: the card stays the same size and the original
+   portfolio image remains the visual anchor. */
+.work-card.is-expanded:has(.expanded-layout-case-study) {
+  width: var(--portfolio-width);
+}
+
+.portfolio-stage.is-expanded .work-card.is-hidden-while-expanded {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.work-card.is-expanded:has(.expanded-layout-case-study) .site-preview {
+  opacity: 1;
+  pointer-events: none;
+  transform: none;
+  visibility: visible;
+  transition: none;
+}
+
+.work-card.is-expanded:has(.expanded-layout-case-study) .portfolio-screenshot {
+  filter: blur(1px) saturate(0.92) brightness(0.84);
+  transform: none;
+  transition: filter 90ms linear;
+}
+
+.expanded-project-preview.expanded-layout-case-study {
+  --overlay-inset: clamp(12px, 1.4vw, 20px);
+  inset: 0;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: rgba(239, 231, 225, 0.84);
+  color: var(--foreground);
+  transform: none;
+  transform-origin: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.work-card.is-expanded .expanded-project-preview.expanded-layout-case-study {
+  border-radius: 0;
+  transition: opacity 90ms linear, visibility 90ms linear;
+  transform: none;
+}
+
+.work-card.is-expanded .expanded-layout-case-study .expanded-copy,
+.work-card.is-expanded .expanded-layout-case-study .expanded-scope {
+  animation: overlay-content-in 100ms ease-out both;
+}
+
+.work-card.is-expanded:has(.expanded-layout-case-study) .expanded-back,
+.work-card.is-expanded:has(.expanded-layout-case-study) .expanded-next {
+  display: none;
+}
+
+@keyframes overlay-content-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.expanded-layout-case-study .expanded-media {
+  display: none;
+}
+
+.expanded-layout-case-study .expanded-copy {
+  top: clamp(28px, 5%, 46px);
+  left: clamp(24px, 3.2vw, 46px);
+  width: min(52%, 430px);
+  max-width: none;
+}
+
+.expanded-layout-case-study .expanded-title {
+  font-size: clamp(30px, 3vw, 46px);
+}
+
+.expanded-layout-case-study .expanded-statement {
+  max-width: 380px;
+  margin-top: clamp(18px, 2.5vw, 30px);
+  font-size: clamp(25px, 2.6vw, 38px);
+}
+
+.expanded-layout-case-study .expanded-scope {
+  left: clamp(24px, 3.2vw, 46px);
+  right: auto;
+  bottom: clamp(24px, 3.2vw, 46px);
+  max-width: 32%;
+  font-size: clamp(18px, 2vw, 28px);
+}
+
+.expanded-layout-case-study .expanded-scope span {
+  color: rgba(21, 17, 14, 0.56);
+}
+
+.expanded-layout-case-study .expanded-back,
+.expanded-layout-case-study .expanded-next {
+  display: none;
 }
 
 .mobile-project-sheet {
@@ -4393,7 +4570,7 @@ a {
   transition: bottom 620ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.portfolio-stage.is-expanded .rail-indicator {
+.portfolio-stage.is-expanded:not(.is-overlay-active) .rail-indicator {
   bottom: max(
     8px,
     calc(((100% - var(--expanded-preview-height)) / 4) - (var(--indicator-dot-size) / 2))
@@ -4401,6 +4578,11 @@ a {
   transform: translateY(
     clamp(0px, calc((var(--expanded-preview-height) - var(--portfolio-height)) / 2), 260px)
   );
+}
+
+.portfolio-stage.is-overlay-active .rail-indicator {
+  bottom: max(18px, calc(var(--portfolio-edge) - 30px));
+  transform: translateX(-50%);
 }
 
 .rail-indicator button {
@@ -4441,6 +4623,21 @@ a {
 
 .rail-indicator .is-complete {
   background: var(--signal);
+}
+
+/* Keep the tracker footprint constant without changing the original dot
+   treatment. */
+.rail-indicator {
+  width: 94px;
+  justify-content: flex-start;
+  gap: 6px;
+  transform: translateX(-50%) !important;
+  transition: none;
+}
+
+.rail-indicator button {
+  min-width: 0;
+  flex: 0 0 auto;
 }
 
 .rail-indicator .is-complete::before {
@@ -4892,6 +5089,52 @@ a {
     display: none;
   }
 
+  .work-card.is-expanded:has(.expanded-layout-case-study) .site-preview {
+    opacity: 1;
+    pointer-events: none;
+    transform: none;
+    visibility: visible;
+  }
+
+  .work-card.is-expanded:has(.expanded-layout-case-study) .portfolio-screenshot {
+    filter: blur(2px) saturate(0.9) brightness(0.84);
+    transform: none;
+  }
+
+  .expanded-project-preview.expanded-layout-case-study,
+  .work-card.is-expanded .expanded-project-preview.expanded-layout-case-study {
+    inset: 0;
+    display: block;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+    visibility: visible;
+  }
+
+  .expanded-layout-case-study .expanded-media {
+    display: none;
+  }
+
+  .expanded-layout-case-study .expanded-copy {
+    top: 24px;
+    left: 24px;
+    width: min(72%, 320px);
+  }
+
+  .expanded-layout-case-study .expanded-scope {
+    left: 24px;
+    right: auto;
+    bottom: 24px;
+    max-width: 42%;
+  }
+
+  .mobile-project-sheet {
+    display: none !important;
+  }
+
   .mobile-project-sheet {
     position: absolute;
     inset: 0;
@@ -5045,7 +5288,7 @@ a {
     white-space: nowrap;
   }
 
-  .portfolio-stage.is-expanded .rail-indicator {
+  .portfolio-stage.is-expanded:not(.is-overlay-active) .rail-indicator {
     transform: translateY(
       clamp(0px, calc((var(--expanded-preview-height) - var(--portfolio-height)) / 2), 260px)
     );
@@ -6109,17 +6352,20 @@ a {
   }
 
   .portfolio-stage .rail-indicator {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    flex: 0 0 auto;
-    margin: 0 auto 20px;
-    transform: none;
+    position: absolute;
+    left: 50%;
+    bottom: max(18px, calc(var(--portfolio-edge) - 30px));
+    flex: none;
+    margin: 0;
+    transform: translateX(-50%);
     transition: none;
   }
 
-  .portfolio-stage.is-expanded .rail-indicator {
-    bottom: auto;
+  .portfolio-stage.is-expanded .rail-indicator,
+  .portfolio-stage.is-overlay-active .rail-indicator {
+    left: 50%;
+    bottom: max(18px, calc(var(--portfolio-edge) - 30px));
+    transform: translateX(-50%);
   }
 }
 
