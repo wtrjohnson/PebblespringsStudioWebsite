@@ -6354,7 +6354,7 @@ a {
   .portfolio-stage .rail-indicator {
     position: absolute;
     left: 50%;
-    bottom: max(18px, calc(var(--portfolio-edge) - 30px));
+    bottom: clamp(18px, 2.5vw, 32px);
     flex: none;
     margin: 0;
     transform: translateX(-50%);
@@ -6364,7 +6364,7 @@ a {
   .portfolio-stage.is-expanded .rail-indicator,
   .portfolio-stage.is-overlay-active .rail-indicator {
     left: 50%;
-    bottom: max(18px, calc(var(--portfolio-edge) - 30px));
+    bottom: clamp(18px, 2.5vw, 32px);
     transform: translateX(-50%);
   }
 }
