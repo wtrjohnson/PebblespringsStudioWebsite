@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { CSSProperties, FocusEvent, MouseEvent } from "react";
+import type {
+  CSSProperties,
+  FocusEvent,
+  MouseEvent,
+  PointerEvent as ReactPointerEvent,
+  WheelEvent,
+} from "react";
 import type { PortfolioProject } from "./portfolioData.ts";
 import { carouselProjects as allPortfolioProjects } from "./portfolioData.ts";
 import { animateScroll } from "./scrollMotion.ts";
@@ -24,10 +30,11 @@ export function PortfolioCarousel() {
   });
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<Array<HTMLElement | null>>([]);
-  const scrollFrameRef = useRef<number | null>(null);
   const autoScrollCancelRef = useRef<(() => void) | null>(null);
-  const isAutoScrollingRef = useRef(false);
-  const autoScrollTimeoutRef = useRef<number | null>(null);
+  const wheelUnlockTimeoutRef = useRef<number | null>(null);
+  const wheelGestureLockedRef = useRef(false);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const suppressNextClickRef = useRef(false);
   const isPausedRef = useRef(false);
   const remainingMsRef = useRef(ROTATION_MS);
   const rotationStartedAtRef = useRef(0);
@@ -39,6 +46,10 @@ export function PortfolioCarousel() {
     : -1;
   const expandedPreviewProject = expandedPreviewIndex >= 0 ? carouselProjects[expandedPreviewIndex] : null;
   const isOverlayActive = expandedProjectId !== null;
+
+  function collapseProject() {
+    setExpandedProject({ projectId: null, activationMode: null });
+  }
 
   function getRotationDelay(index: number) {
     return carouselProjects[index]?.isProposition ? INTRO_ROTATION_MS : ROTATION_MS;
@@ -61,24 +72,18 @@ export function PortfolioCarousel() {
       return;
     }
 
-    isAutoScrollingRef.current = true;
-
     autoScrollCancelRef.current?.();
     autoScrollCancelRef.current = animateScroll({
       target: scrollContainer,
       axis: "left",
       to: getCenteredScrollLeft(scrollContainer, card),
-      duration: 760,
+      duration: 520,
     });
 
-    if (autoScrollTimeoutRef.current !== null) {
-      window.clearTimeout(autoScrollTimeoutRef.current);
-    }
-
-    autoScrollTimeoutRef.current = window.setTimeout(() => {
-      isAutoScrollingRef.current = false;
+    return () => {
+      autoScrollCancelRef.current?.();
       autoScrollCancelRef.current = null;
-    }, 700);
+    };
   }, [activeIndex, isOverlayActive]);
 
   function clearRotationTimeout() {
@@ -96,7 +101,14 @@ export function PortfolioCarousel() {
     clearRotationTimeout();
     rotationStartedAtRef.current = window.performance.now();
     rotationTimeoutRef.current = window.setTimeout(() => {
-      setActiveIndex((current) => (current + 1) % carouselProjects.length);
+      if (activeIndex >= carouselProjects.length - 1) {
+        isPausedRef.current = true;
+        setIsPaused(true);
+        rotationTimeoutRef.current = null;
+        return;
+      }
+
+      setActiveIndex(activeIndex + 1);
     }, delay);
   }
 
@@ -139,12 +151,8 @@ export function PortfolioCarousel() {
 
   useEffect(() => {
     return () => {
-      if (scrollFrameRef.current !== null) {
-        window.cancelAnimationFrame(scrollFrameRef.current);
-      }
-
-      if (autoScrollTimeoutRef.current !== null) {
-        window.clearTimeout(autoScrollTimeoutRef.current);
+      if (wheelUnlockTimeoutRef.current !== null) {
+        window.clearTimeout(wheelUnlockTimeoutRef.current);
       }
 
       autoScrollCancelRef.current?.();
@@ -179,9 +187,6 @@ export function PortfolioCarousel() {
         return;
       }
 
-      const previewRect =
-        activeCard.querySelector(".expanded-project-preview")?.getBoundingClientRect() ??
-        activeCard.getBoundingClientRect();
       const indicatorRect = document.querySelector(".rail-indicator")?.getBoundingClientRect();
       const isInsideIndicatorSafeZone = indicatorRect
         ? event.clientX >= indicatorRect.left - 16 &&
@@ -214,47 +219,94 @@ export function PortfolioCarousel() {
     };
   }, [expandedPreviewIndex, expandedProject.activationMode, expandedProjectId]);
 
-  function syncActiveToScroll() {
-    const scrollContainer = scrollRef.current;
+  function clearWheelGestureLock() {
+    if (wheelUnlockTimeoutRef.current !== null) {
+      window.clearTimeout(wheelUnlockTimeoutRef.current);
+    }
 
-    if (!scrollContainer || isAutoScrollingRef.current || scrollFrameRef.current !== null) {
+    wheelUnlockTimeoutRef.current = window.setTimeout(() => {
+      wheelGestureLockedRef.current = false;
+      wheelUnlockTimeoutRef.current = null;
+    }, 260);
+  }
+
+  function moveBy(direction: -1 | 1) {
+    if (isOverlayActive) {
       return;
     }
 
-    scrollFrameRef.current = window.requestAnimationFrame(() => {
-      const nextIndex = cardRefs.current.reduce((closestIndex, card, index) => {
-        if (!card) {
-          return closestIndex;
-        }
+    pauseRotation();
+    setActiveIndex((current) => Math.min(
+      Math.max(current + direction, 0),
+      carouselProjects.length - 1,
+    ));
+  }
 
-        const currentCard = cardRefs.current[closestIndex];
+  function handleWheel(event: WheelEvent<HTMLDivElement>) {
+    if (isOverlayActive) {
+      return;
+    }
 
-        if (!currentCard) {
-          return index;
-        }
+    const delta = event.shiftKey
+      ? event.deltaY
+      : Math.abs(event.deltaX) > Math.abs(event.deltaY)
+        ? event.deltaX
+        : 0;
 
-        const currentDistance = Math.abs(
-          scrollContainer.scrollLeft - getCenteredScrollLeft(scrollContainer, currentCard),
-        );
-        const nextDistance = Math.abs(
-          scrollContainer.scrollLeft - getCenteredScrollLeft(scrollContainer, card),
-        );
+    if (Math.abs(delta) < 2) {
+      return;
+    }
 
-        return nextDistance < currentDistance ? index : closestIndex;
-      }, 0);
+    event.preventDefault();
+    clearWheelGestureLock();
 
-      setActiveIndex(nextIndex);
-      scrollFrameRef.current = null;
-    });
+    if (wheelGestureLockedRef.current) {
+      return;
+    }
+
+    wheelGestureLockedRef.current = true;
+    moveBy(delta > 0 ? 1 : -1);
+  }
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.pointerType !== "touch") {
+      return;
+    }
+
+    touchStartRef.current = { x: event.clientX, y: event.clientY };
+    suppressNextClickRef.current = false;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function handlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+    const touchStart = touchStartRef.current;
+    touchStartRef.current = null;
+
+    if (!touchStart || event.pointerType !== "touch") {
+      return;
+    }
+
+    const deltaX = event.clientX - touchStart.x;
+    const deltaY = event.clientY - touchStart.y;
+
+    if (Math.abs(deltaX) < 44 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+      return;
+    }
+
+    event.preventDefault();
+    suppressNextClickRef.current = true;
+    moveBy(deltaX < 0 ? 1 : -1);
+  }
+
+  function handlePointerCancel(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "touch") {
+      touchStartRef.current = null;
+    }
   }
 
   function expandProject(projectId: string, activationMode: OverlayState["activationMode"]) {
     pauseRotation();
     setExpandedProject({ projectId, activationMode });
-  }
-
-  function collapseProject() {
-    setExpandedProject({ projectId: null, activationMode: null });
   }
 
   function canHover() {
@@ -334,6 +386,12 @@ export function PortfolioCarousel() {
   }
 
   function handlePreviewClick(event: MouseEvent<HTMLAnchorElement>, project: PortfolioProject, index: number) {
+    if (suppressNextClickRef.current) {
+      event.preventDefault();
+      suppressNextClickRef.current = false;
+      return;
+    }
+
     if (!isActiveProject(index) && isOnDeckProject(index)) {
       event.preventDefault();
       activateCarouselIndex(index);
@@ -372,7 +430,10 @@ export function PortfolioCarousel() {
       </div>
       <div
         className="portfolio-scroll"
-        onScroll={syncActiveToScroll}
+        onPointerCancel={handlePointerCancel}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onWheel={handleWheel}
         ref={scrollRef}
       >
         <div className="work-rail" id="work" aria-label="Portfolio">
