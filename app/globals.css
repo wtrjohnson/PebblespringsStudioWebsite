@@ -2697,7 +2697,7 @@ a {
 }
 
 .expanded-layout-case-study .expanded-scope span {
-  color: rgba(21, 17, 14, 0.56);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 /* Portfolio overlay state: the card stays the same size and the original
@@ -2732,8 +2732,8 @@ a {
   width: auto;
   height: auto;
   border-radius: 0;
-  background: rgba(10, 108, 100, 0.84);
-  color: var(--foreground);
+  background: rgba(8, 120, 207, 0.84);
+  color: var(--white);
   transform: none;
   transform-origin: center;
   backdrop-filter: blur(18px);
@@ -2798,7 +2798,7 @@ a {
 }
 
 .expanded-layout-case-study .expanded-scope span {
-  color: rgba(21, 17, 14, 0.56);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .expanded-layout-case-study .expanded-back,
