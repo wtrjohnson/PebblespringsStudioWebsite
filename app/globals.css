@@ -6357,7 +6357,7 @@ a {
     bottom: clamp(18px, 2.5vw, 32px);
     flex: none;
     margin: 0;
-    transform: translateX(-50%);
+    transform: translate(-50%, clamp(72px, 7.5vw, 110px)) !important;
     transition: none;
   }
 
@@ -6365,7 +6365,7 @@ a {
   .portfolio-stage.is-overlay-active .rail-indicator {
     left: 50%;
     bottom: clamp(18px, 2.5vw, 32px);
-    transform: translateX(-50%);
+    transform: translate(-50%, clamp(72px, 7.5vw, 110px)) !important;
   }
 }
 
