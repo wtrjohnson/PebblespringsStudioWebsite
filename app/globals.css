@@ -2721,7 +2721,7 @@ a {
 }
 
 .work-card.is-expanded:has(.expanded-layout-case-study) .portfolio-screenshot {
-  filter: blur(1px) saturate(0.92) brightness(0.84);
+  filter: blur(7px) saturate(0.88) brightness(0.78);
   transform: none;
   transition: filter 90ms linear;
 }
@@ -2732,12 +2732,12 @@ a {
   width: auto;
   height: auto;
   border-radius: 0;
-  background: rgba(239, 231, 225, 0.84);
+  background: rgba(10, 108, 100, 0.84);
   color: var(--foreground);
   transform: none;
   transform-origin: center;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .work-card.is-expanded .expanded-project-preview.expanded-layout-case-study {
@@ -5097,7 +5097,7 @@ a {
   }
 
   .work-card.is-expanded:has(.expanded-layout-case-study) .portfolio-screenshot {
-    filter: blur(2px) saturate(0.9) brightness(0.84);
+    filter: blur(7px) saturate(0.88) brightness(0.78);
     transform: none;
   }
 
