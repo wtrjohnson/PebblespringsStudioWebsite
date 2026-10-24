@@ -1,7 +1,7 @@
 import { and, eq, gte, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "../../../db";
-import { portfolioScoreReadings } from "../../../db/schema";
+import { portfolioScoreReadings, portfolioScores } from "../../../db/schema";
 import { carouselProjects } from "../../portfolioData";
 import type { ScoreKey } from "../../lib/pagespeed";
 
@@ -21,6 +21,7 @@ export async function GET() {
   try {
     const db = await getDb();
     const trackedProjectKeys = carouselProjects.map((project) => project.id);
+    const trackedProjectUrls = carouselProjects.map((project) => project.url);
     const readings = await db.select().from(portfolioScoreReadings).where(and(
       eq(portfolioScoreReadings.status, "scored"),
       gte(portfolioScoreReadings.capturedAt, windowStart),
@@ -28,7 +29,36 @@ export async function GET() {
     ));
 
     if (readings.length === 0) {
-      return NextResponse.json({ status: "unavailable", scores: null, readingCount: 0 });
+      const cachedScores = await db.select().from(portfolioScores).where(
+        inArray(portfolioScores.url, trackedProjectUrls),
+      );
+
+      if (cachedScores.length === 0) {
+        return NextResponse.json({ status: "unavailable", scores: null, readingCount: 0 });
+      }
+
+      const totals = cachedScores.reduce((acc, reading) => {
+        for (const key of SCORE_KEYS) {
+          acc[key] += reading[SCORE_COLUMNS[key]];
+        }
+        return acc;
+      }, { speed: 0, reach: 0, reliability: 0, visibility: 0 } as Record<ScoreKey, number>);
+      const latestCapturedAt = cachedScores.reduce(
+        (latest, reading) => reading.updatedAt > latest ? reading.updatedAt : latest,
+        cachedScores[0].updatedAt,
+      );
+
+      return NextResponse.json({
+        status: "available",
+        source: "portfolio-cache",
+        scores: Object.fromEntries(
+          SCORE_KEYS.map((key) => [key, Math.round(totals[key] / cachedScores.length)]),
+        ),
+        readingCount: cachedScores.length,
+        latestCapturedAt,
+        windowStart,
+        windowEnd,
+      });
     }
 
     const latestCapturedAt = readings.reduce((latest, reading) => reading.capturedAt > latest ? reading.capturedAt : latest, readings[0].capturedAt);

@@ -1,0 +1,210 @@
+.alt-contact-page {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  flex-direction: column;
+}
+
+.alt-contact-main {
+  display: grid;
+  flex: 1;
+}
+
+.alt-contact-page .contact-layout {
+  display: grid;
+  width: var(--alt-page);
+  min-height: clamp(640px, calc(100dvh - 170px), 820px);
+  grid-template-columns: minmax(280px, 0.76fr) minmax(420px, 1fr);
+  gap: clamp(56px, 8vw, 132px);
+  align-items: start;
+  margin: 0 auto;
+  padding: clamp(76px, 10vh, 116px) 0 clamp(84px, 11vh, 132px);
+}
+
+.alt-contact-page .contact-copy {
+  padding-top: 2px;
+}
+
+.alt-contact-page .contact-copy h1 {
+  max-width: 620px;
+  margin: 0;
+  font-size: clamp(40px, 4.7vw, 68px);
+  font-weight: 520;
+  letter-spacing: -0.058em;
+  line-height: 0.96;
+  text-wrap: balance;
+}
+
+.alt-contact-page .contact-copy p {
+  max-width: 390px;
+  margin: 0;
+  color: var(--alt-muted);
+  font-size: 15px;
+  font-weight: 460;
+  letter-spacing: -0.02em;
+  line-height: 1.55;
+}
+
+.alt-contact-page .contact-form {
+  --send-button-rise: 220px;
+  display: grid;
+  width: 100%;
+  min-height: 410px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 28px 32px;
+  border-top: 1px solid var(--alt-ink);
+  padding-top: 30px;
+}
+
+.alt-contact-page .contact-form label {
+  max-height: 96px;
+  gap: 9px;
+}
+
+.alt-contact-page .contact-form .contact-message {
+  max-height: 188px;
+}
+
+.alt-contact-page .contact-form label > span {
+  color: var(--alt-muted);
+  font-size: 12px;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+}
+
+.alt-contact-page .contact-form input,
+.alt-contact-page .contact-form textarea {
+  border-bottom: 1px solid var(--alt-line);
+  color: var(--alt-ink);
+  font-size: 16px;
+  font-weight: 480;
+  letter-spacing: -0.025em;
+  line-height: 1.35;
+  padding: 9px 0 12px;
+}
+
+.alt-contact-page .contact-form textarea {
+  min-height: 126px;
+}
+
+.alt-contact-page .contact-form input:focus,
+.alt-contact-page .contact-form textarea:focus {
+  border-bottom-color: var(--alt-ink);
+}
+
+.alt-contact-page .contact-form button {
+  min-width: 142px;
+  min-height: 46px;
+  border: 1px solid var(--alt-ink);
+  border-radius: 2px;
+  background: var(--alt-ink);
+  color: var(--alt-paper);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  padding: 12px 18px;
+}
+
+.alt-contact-page .contact-form button:hover,
+.alt-contact-page .contact-form button:focus-visible {
+  border-color: var(--alt-muted);
+  background: var(--alt-muted);
+}
+
+.alt-contact-page .contact-form.is-sent button {
+  border-color: var(--alt-ink);
+  background: var(--alt-ink);
+  color: var(--alt-paper);
+}
+
+.alt-contact-page .contact-error {
+  color: #a73725;
+  font-size: 13px;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+}
+
+.alt-contact-page .contact-email {
+  position: static;
+  grid-column: 2;
+  align-self: end;
+  margin: -70px 0 0;
+  color: var(--alt-muted);
+  font-size: 12px;
+  font-weight: 520;
+  letter-spacing: -0.01em;
+}
+
+.alt-contact-page .contact-email a {
+  border-bottom: 1px solid currentColor;
+  color: var(--alt-ink);
+  padding-bottom: 3px;
+}
+
+.alt-contact-page .alt-footer {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .alt-contact-page .contact-layout {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    gap: 64px;
+    padding: 76px 0 96px;
+  }
+
+  .alt-contact-page .contact-copy p {
+    max-width: 520px;
+  }
+
+  .alt-contact-page .contact-form {
+    width: min(100%, 680px);
+  }
+
+  .alt-contact-page .contact-email {
+    grid-column: 1;
+    margin: -34px 0 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .alt-contact-page .alt-nav .alt-nav-cta {
+    display: inline-flex;
+  }
+
+  .alt-contact-page .contact-layout {
+    gap: 48px;
+    padding: 58px 0 78px;
+  }
+
+  .alt-contact-page .contact-copy h1 {
+    font-size: clamp(38px, 11vw, 50px);
+  }
+
+  .alt-contact-page .contact-form {
+    grid-template-columns: 1fr;
+    gap: 25px;
+    padding-top: 25px;
+  }
+
+  .alt-contact-page .contact-form label,
+  .alt-contact-page .contact-form .contact-message {
+    grid-column: 1;
+  }
+
+  .alt-contact-page .contact-form button {
+    grid-column: 1;
+  }
+
+  .alt-contact-page .contact-email {
+    margin-top: -12px;
+  }
+
+  .alt-contact-page .alt-footer {
+    min-height: 112px;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+  }
+}

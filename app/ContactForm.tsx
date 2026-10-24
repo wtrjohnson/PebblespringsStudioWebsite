@@ -2,7 +2,15 @@
 
 import { type FormEvent, useCallback, useRef, useState } from "react";
 
-export function ContactForm({ initialMessage = "" }: { initialMessage?: string }) {
+export function ContactForm({
+  initialMessage = "",
+  showIntro = true,
+  submitLabel = "Send it over",
+}: {
+  initialMessage?: string;
+  showIntro?: boolean;
+  submitLabel?: string;
+}) {
   const [isContactSubmitted, setIsContactSubmitted] = useState(false);
   const [isContactSubmitSettled, setIsContactSubmitSettled] = useState(false);
   const [isContactSubmitting, setIsContactSubmitting] = useState(false);
@@ -69,9 +77,11 @@ export function ContactForm({ initialMessage = "" }: { initialMessage?: string }
           <br />
           look the part.
         </h1>
-        <p>
-          Tell me a little about what you do and what you&apos;re trying to build.
-        </p>
+        {showIntro && (
+          <p>
+            Tell me a little about what you do and what you&apos;re trying to build.
+          </p>
+        )}
       </div>
 
       <form
@@ -108,7 +118,7 @@ export function ContactForm({ initialMessage = "" }: { initialMessage?: string }
           type="submit"
         >
           <span className="send-label send-label-default">
-            {isContactSubmitting ? "Sending..." : "Send it over"}
+            {isContactSubmitting ? "Sending..." : submitLabel}
           </span>
           <span className="send-label send-label-sent">Message Sent</span>
         </button>

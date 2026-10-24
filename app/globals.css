@@ -3663,8 +3663,8 @@ a {
 }
 
 .result-score-item.is-dimmed {
-  filter: saturate(0.72);
-  opacity: 0.12;
+  filter: saturate(0.65);
+  opacity: 0.18;
 }
 
 .result-score-item:focus-visible {
@@ -3675,33 +3675,60 @@ a {
 .result-score-description {
   position: absolute;
   left: var(--desc-left, auto);
-  right: var(--desc-right, auto);
+  right: auto;
   top: var(--desc-y, 50%);
-  z-index: 2;
-  width: min(300px, 82vw);
+  z-index: 5;
+  width: min(340px, calc(100% - 24px));
   margin: 0;
-  color: var(--paper);
-  font-size: clamp(19px, 1.85vw, 27px);
-  font-weight: 430;
-  line-height: 1.04;
-  letter-spacing: -0.045em;
+  border: 1px solid rgba(9, 9, 9, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.18),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+  color: #111111;
+  font-size: clamp(15px, 1.25vw, 17px);
+  font-weight: 470;
+  line-height: 1.42;
+  letter-spacing: -0.022em;
   opacity: 0;
+  padding: 15px 17px 16px;
   pointer-events: none;
   text-align: left;
   transform: translate3d(0, calc(-50% + 8px), 0);
+  visibility: hidden;
   transition:
     opacity 220ms ease,
-    transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 220ms ease;
+}
+
+.result-score-description strong,
+.result-score-description span {
+  display: block;
+}
+
+.result-score-description strong {
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 760;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.result-score-description span {
+  color: #303030;
 }
 
 .result-score-grid.has-active-description .result-score-description,
 .score-grid.has-active-description .result-score-description {
   opacity: 1;
   transform: translate3d(0, -50%, 0);
+  visibility: visible;
 }
 
 .studio-score-description {
-  color: var(--foreground);
+  color: #111111;
 }
 
 .checker-verdict {
@@ -5650,18 +5677,16 @@ a {
     left: 50%;
     right: auto;
     z-index: 4;
-    width: min(calc(100% - 18px), 420px);
+    width: min(calc(100% - 18px), 380px);
     max-width: none;
     margin: 0;
-    font-size: 22px;
+    font-size: 16px;
     text-align: left;
     transform: translate3d(-50%, calc(-50% + 8px), 0);
-    display: none;
   }
 
   .result-score-grid.has-active-description .result-score-description,
   .score-grid.has-active-description .result-score-description {
-    display: block;
     transform: translate3d(-50%, -50%, 0);
   }
 
@@ -6058,7 +6083,9 @@ a {
   }
 
   .result-score-description {
-    font-size: 19px;
+    border-radius: 12px;
+    font-size: 15px;
+    padding: 13px 14px 14px;
   }
 
   .how-work-section {

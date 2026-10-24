@@ -33,6 +33,9 @@ export function PortfolioCarousel() {
   const autoScrollCancelRef = useRef<(() => void) | null>(null);
   const wheelUnlockTimeoutRef = useRef<number | null>(null);
   const wheelGestureLockedRef = useRef(false);
+  const lastScrollLeftRef = useRef<number | null>(null);
+  const isCenteringRef = useRef(false);
+  const centeringTimeoutRef = useRef<number | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const suppressNextClickRef = useRef(false);
   const isPausedRef = useRef(false);
@@ -73,16 +76,27 @@ export function PortfolioCarousel() {
     }
 
     autoScrollCancelRef.current?.();
+    isCenteringRef.current = true;
     autoScrollCancelRef.current = animateScroll({
       target: scrollContainer,
       axis: "left",
       to: getCenteredScrollLeft(scrollContainer, card),
       duration: 520,
     });
+    centeringTimeoutRef.current = window.setTimeout(() => {
+      isCenteringRef.current = false;
+      centeringTimeoutRef.current = null;
+    }, 560);
 
     return () => {
       autoScrollCancelRef.current?.();
       autoScrollCancelRef.current = null;
+      isCenteringRef.current = false;
+
+      if (centeringTimeoutRef.current !== null) {
+        window.clearTimeout(centeringTimeoutRef.current);
+        centeringTimeoutRef.current = null;
+      }
     };
   }, [activeIndex, isOverlayActive]);
 
@@ -153,6 +167,10 @@ export function PortfolioCarousel() {
     return () => {
       if (wheelUnlockTimeoutRef.current !== null) {
         window.clearTimeout(wheelUnlockTimeoutRef.current);
+      }
+
+      if (centeringTimeoutRef.current !== null) {
+        window.clearTimeout(centeringTimeoutRef.current);
       }
 
       autoScrollCancelRef.current?.();
@@ -247,13 +265,9 @@ export function PortfolioCarousel() {
       return;
     }
 
-    const delta = event.shiftKey
-      ? event.deltaY
-      : Math.abs(event.deltaX) > Math.abs(event.deltaY)
-        ? event.deltaX
-        : 0;
+    const delta = event.shiftKey ? event.deltaY : event.deltaX;
 
-    if (Math.abs(delta) < 2) {
+    if (Math.abs(delta) < 0.1) {
       return;
     }
 
@@ -266,6 +280,37 @@ export function PortfolioCarousel() {
 
     wheelGestureLockedRef.current = true;
     moveBy(delta > 0 ? 1 : -1);
+  }
+
+  function handleCarouselScroll() {
+    const scrollContainer = scrollRef.current;
+
+    if (!scrollContainer) {
+      return;
+    }
+
+    const currentScrollLeft = scrollContainer.scrollLeft;
+    const previousScrollLeft = lastScrollLeftRef.current;
+    lastScrollLeftRef.current = currentScrollLeft;
+
+    if (
+      previousScrollLeft === null ||
+      isCenteringRef.current ||
+      wheelGestureLockedRef.current
+    ) {
+      return;
+    }
+
+    const direction = currentScrollLeft > previousScrollLeft ? 1 : -1;
+    const currentCard = cardRefs.current[activeIndex];
+
+    if (currentCard) {
+      scrollContainer.scrollLeft = getCenteredScrollLeft(scrollContainer, currentCard);
+    }
+
+    wheelGestureLockedRef.current = true;
+    clearWheelGestureLock();
+    moveBy(direction);
   }
 
   function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
@@ -433,6 +478,7 @@ export function PortfolioCarousel() {
         onPointerCancel={handlePointerCancel}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
+        onScroll={handleCarouselScroll}
         onWheel={handleWheel}
         ref={scrollRef}
       >

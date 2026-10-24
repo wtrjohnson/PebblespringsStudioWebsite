@@ -125,7 +125,7 @@ export const carouselProjects: PortfolioProject[] = [
     id: "clear-policy-strategies",
     eyebrow: "Creative Practice",
     number: "04",
-    title: "CPS",
+    title: "Clear Policy Solutions",
     statement: "A direct presence\nfor policy work.",
     statementColor: "#B72B35",
     scope: ["Positioning", "Identity", "Web Presence"],
