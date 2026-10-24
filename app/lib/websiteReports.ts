@@ -11,6 +11,14 @@ export function hashReportToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
+export function createReportRequestToken() {
+  return randomBytes(32).toString("base64url");
+}
+
+export function hashReportRequestToken(token: string) {
+  return createHash("sha256").update(`website-report-request:v1:${token}`).digest("hex");
+}
+
 export function escapeHtml(value: unknown) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")

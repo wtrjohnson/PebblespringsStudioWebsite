@@ -3,6 +3,8 @@ import {
   isPortalLoginRateLimited,
   normalizePortalEmail,
 } from "../../../../../db/portalAuth";
+import { getClientAddress } from "../../../../../db/security";
+import { requireCanonicalAppUrl } from "../../../../lib/appUrl";
 
 const SUCCESS_MESSAGE = "If that email has access, we sent a login link.";
 
@@ -18,20 +20,17 @@ type RequestLinkPayload = {
 async function sendMagicLinkEmail(email: string, token: string) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.PORTAL_FROM_EMAIL;
-  const appUrl = (process.env.APP_URL ?? "").replace(/\/$/, "");
-
-  if (!appUrl) {
-    console.warn("APP_URL is not set; unable to build a portal login link.");
-    return;
-  }
+  const appUrl = requireCanonicalAppUrl();
 
   const loginUrl = `${appUrl}/portal/auth/callback?token=${encodeURIComponent(token)}`;
 
   if (!apiKey || !from) {
-    console.warn(
-      `Resend is not configured; portal login link for ${email} was not emailed: ${loginUrl}`,
-    );
-    return;
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(`Development-only portal login link for ${email}: ${loginUrl}`);
+      return;
+    }
+
+    throw new Error("Portal email delivery is not configured.");
   }
 
   const response = await fetch("https://api.resend.com/emails", {
@@ -63,7 +62,7 @@ export async function POST(request: Request) {
     const payload = (await request.json().catch(() => null)) as RequestLinkPayload | null;
     const email = normalizePortalEmail(payload?.email);
 
-    if (!email || await isPortalLoginRateLimited(email)) {
+    if (!email || await isPortalLoginRateLimited(email, getClientAddress(request))) {
       return Response.json({ message: SUCCESS_MESSAGE });
     }
 

@@ -28,6 +28,7 @@ type ScoreResult = {
   url: string;
   scores: Record<ScoreKey, number>;
   websiteTestId?: number;
+  websiteTestToken?: string;
   source?: "pagespeed" | "demo";
 };
 
@@ -698,10 +699,12 @@ export function PerformanceSection({
       return;
     }
 
-    if (!result?.websiteTestId) {
+    if (!result?.websiteTestId || !result.websiteTestToken) {
       setReportErrorMessage("Run the website check again before sending a report.");
       return;
     }
+
+    const formData = new FormData(event.currentTarget);
 
     setReportStatus("sending");
     setReportErrorMessage("");
@@ -712,9 +715,11 @@ export function PerformanceSection({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           websiteTestId: result.websiteTestId,
+          websiteTestToken: result.websiteTestToken,
           email,
           message: `Email report for ${displayUrl(result.url)}.`,
           requestType: "report",
+          website: String(formData.get("website") ?? ""),
         }),
       });
       const data = (await response.json().catch(() => null)) as { error?: string } | null;
@@ -990,6 +995,10 @@ export function PerformanceSection({
                       ].join(" ")}
                       onSubmit={handleReportSubmit}
                     >
+                      <label className="form-honeypot" aria-hidden="true">
+                        <span>Website</span>
+                        <input name="website" type="text" autoComplete="off" tabIndex={-1} />
+                      </label>
                       <div className="checker-morph-primary">
                         {reportStatus === "closed" ? (
                           <button

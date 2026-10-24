@@ -1,9 +1,9 @@
 import { randomBytes, createHmac } from "node:crypto";
-import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "./index";
+import { consumeRateLimit } from "./security";
 import {
   portalClients,
-  portalLoginAttempts,
   portalMagicLinks,
   portalSessions,
   portalUsers,
@@ -80,21 +80,29 @@ export function getPortalSessionTokenFromCookieHeader(cookieHeader: string | nul
     : null;
 }
 
-export async function isPortalLoginRateLimited(email: string) {
-  const db = await getDb();
-  const since = new Date(Date.now() - LOGIN_WINDOW_MS).toISOString();
-  const recentAttempts = await db
-    .select({ id: portalLoginAttempts.id })
-    .from(portalLoginAttempts)
-    .where(and(eq(portalLoginAttempts.email, email), gt(portalLoginAttempts.createdAt, since)))
-    .limit(LOGIN_MAX_ATTEMPTS);
+export async function isPortalLoginRateLimited(email: string, clientAddress: string) {
+  const [connection, principalOnConnection, principal] = await Promise.all([
+    consumeRateLimit({
+      scope: "portal-login-connection",
+      identifier: clientAddress,
+      limit: 20,
+      windowMs: LOGIN_WINDOW_MS,
+    }),
+    consumeRateLimit({
+      scope: "portal-login-principal-connection",
+      identifier: `${clientAddress}\0${email}`,
+      limit: LOGIN_MAX_ATTEMPTS,
+      windowMs: LOGIN_WINDOW_MS,
+    }),
+    consumeRateLimit({
+      scope: "portal-login-principal",
+      identifier: email,
+      limit: 8,
+      windowMs: 60 * 60 * 1000,
+    }),
+  ]);
 
-  await db.insert(portalLoginAttempts).values({
-    email,
-    createdAt: nowIso(),
-  });
-
-  return recentAttempts.length >= LOGIN_MAX_ATTEMPTS;
+  return !connection.allowed || !principalOnConnection.allowed || !principal.allowed;
 }
 
 export async function createPortalMagicLink(email: string) {

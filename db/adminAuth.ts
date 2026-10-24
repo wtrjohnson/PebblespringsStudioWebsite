@@ -1,7 +1,8 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "./index";
-import { studioAdminLoginAttempts, studioAdminSessions, studioAdmins } from "./schema";
+import { consumeRateLimit } from "./security";
+import { studioAdminSessions, studioAdmins } from "./schema";
 
 export const STUDIO_SESSION_COOKIE = "ps_studio_session";
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -132,24 +133,23 @@ export function getStudioSessionTokenFromCookieHeader(cookieHeader: string | nul
     : null;
 }
 
-export async function isAdminLoginRateLimited(email: string) {
-  const db = await getDb();
-  const since = new Date(Date.now() - LOGIN_WINDOW_MS).toISOString();
-  const recentAttempts = await db
-    .select({ id: studioAdminLoginAttempts.id })
-    .from(studioAdminLoginAttempts)
-    .where(and(
-      eq(studioAdminLoginAttempts.email, email),
-      gt(studioAdminLoginAttempts.createdAt, since),
-    ))
-    .limit(LOGIN_MAX_ATTEMPTS);
+export async function isAdminLoginRateLimited(email: string, clientAddress: string) {
+  const [connection, principalOnConnection] = await Promise.all([
+    consumeRateLimit({
+      scope: "admin-login-connection",
+      identifier: clientAddress,
+      limit: 20,
+      windowMs: LOGIN_WINDOW_MS,
+    }),
+    consumeRateLimit({
+      scope: "admin-login-principal-connection",
+      identifier: `${clientAddress}\0${email}`,
+      limit: LOGIN_MAX_ATTEMPTS,
+      windowMs: LOGIN_WINDOW_MS,
+    }),
+  ]);
 
-  await db.insert(studioAdminLoginAttempts).values({
-    email,
-    createdAt: nowIso(),
-  });
-
-  return recentAttempts.length >= LOGIN_MAX_ATTEMPTS;
+  return !connection.allowed || !principalOnConnection.allowed;
 }
 
 export async function createStudioSession(email: string, password: string) {

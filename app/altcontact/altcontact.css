@@ -57,6 +57,14 @@
   padding-top: 30px;
 }
 
+.alt-contact-page .contact-form .form-honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .alt-contact-page .contact-form label {
   max-height: 96px;
   gap: 9px;

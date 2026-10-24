@@ -40,6 +40,7 @@ export function ContactForm({
         message: getField(formData, "message"),
         budget: getField(formData, "budget"),
         timeline: getField(formData, "timeline"),
+        website: getField(formData, "website"),
       }),
     });
 
@@ -96,6 +97,10 @@ export function ContactForm({
         onSubmit={handleContactSubmit}
         ref={contactFormRef}
       >
+        <label className="form-honeypot" aria-hidden="true">
+          <span>Website</span>
+          <input name="website" type="text" autoComplete="off" tabIndex={-1} />
+        </label>
         <label>
           <span>Name</span>
           <input name="name" type="text" autoComplete="name" />

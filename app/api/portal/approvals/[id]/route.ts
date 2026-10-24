@@ -49,6 +49,10 @@ export async function PATCH(
       return Response.json({ error: "authentication required" }, { status: 401 });
     }
 
+    if (session.role !== "approver" && session.role !== "admin") {
+      return Response.json({ error: "approval permission required" }, { status: 403 });
+    }
+
     const db = await getDb();
     const [approval] = await db
       .update(portalApprovals)
@@ -62,6 +66,7 @@ export async function PATCH(
         eq(portalApprovals.id, approvalId),
         eq(portalApprovals.projectId, portalProjects.id),
         eq(portalProjects.clientId, session.clientId),
+        eq(portalApprovals.status, "needs_review"),
         eq(portalApprovals.visibility, "published"),
         isNull(portalApprovals.deletedAt),
       ))

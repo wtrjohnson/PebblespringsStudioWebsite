@@ -6,6 +6,7 @@ import {
   normalizeAdminEmail,
   STUDIO_SESSION_COOKIE,
 } from "../../../../../db/adminAuth";
+import { getClientAddress } from "../../../../../db/security";
 
 // One message for every failure mode, so the response never reveals whether an
 // account exists.
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
       return Response.json({ error: FAILURE_MESSAGE }, { status: 401 });
     }
 
-    if (await isAdminLoginRateLimited(email)) {
+    if (await isAdminLoginRateLimited(email, getClientAddress(request))) {
       return Response.json(
         { error: "Too many attempts. Try again in a few minutes." },
         { status: 429 },

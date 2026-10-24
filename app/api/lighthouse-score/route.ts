@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "../../../db";
+import { consumeRateLimit, getClientAddress, tooManyRequests } from "../../../db/security";
 import { websiteTests } from "../../../db/schema";
 import { fetchPageSpeedReport, type PageSpeedReport, type ScoreKey } from "../../lib/pagespeed";
+import { createReportRequestToken, hashReportRequestToken } from "../../lib/websiteReports";
 
 type ScoreSource = "pagespeed" | "demo";
 
@@ -19,7 +21,6 @@ const CACHE_TTL_MS = 1000 * 60 * 60 * 4;
 const RATE_LIMIT_WINDOW_MS = 1000 * 60;
 const RATE_LIMIT_MAX_REQUESTS = 8;
 const scoreCache = new Map<string, CachedScore>();
-const rateLimitBuckets = new Map<string, number[]>();
 
 function normalizeUrl(input: unknown) {
   if (typeof input !== "string") {
@@ -52,28 +53,6 @@ function normalizeUrl(input: unknown) {
   } catch {
     return candidate;
   }
-}
-
-function getClientIp(request: NextRequest) {
-  return (
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "unknown"
-  );
-}
-
-function isRateLimited(ip: string) {
-  const now = Date.now();
-  const existing = rateLimitBuckets.get(ip) ?? [];
-  const recent = existing.filter((timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS);
-
-  if (recent.length >= RATE_LIMIT_MAX_REQUESTS) {
-    rateLimitBuckets.set(ip, recent);
-    return true;
-  }
-
-  rateLimitBuckets.set(ip, [...recent, now]);
-  return false;
 }
 
 function createDemoScores(url: string): Record<ScoreKey, number> {
@@ -120,6 +99,7 @@ async function recordWebsiteTest({
     const db = await getDb();
     const parsedUrl = new URL(normalizedUrl);
     const lowestScore = scores ? getLowestScore(scores) : null;
+    const requestToken = createReportRequestToken();
     const [test] = await db
       .insert(websiteTests)
       .values({
@@ -137,10 +117,11 @@ async function recordWebsiteTest({
         status,
         errorMessage,
         reportData: report ?? null,
+        requestTokenHash: hashReportRequestToken(requestToken),
       })
       .returning({ id: websiteTests.id });
 
-    return test?.id;
+    return test ? { id: test.id, requestToken } : undefined;
   } catch (error) {
     console.error("Unable to record website test", error);
     return undefined;
@@ -148,12 +129,17 @@ async function recordWebsiteTest({
 }
 
 export async function POST(request: NextRequest) {
-  const ip = getClientIp(request);
+  const rateLimit = await consumeRateLimit({
+    scope: "website-check",
+    identifier: getClientAddress(request),
+    limit: RATE_LIMIT_MAX_REQUESTS,
+    windowMs: RATE_LIMIT_WINDOW_MS,
+  });
 
-  if (isRateLimited(ip)) {
-    return NextResponse.json(
-      { error: "Too many checks from this connection. Try again in a minute." },
-      { status: 429 },
+  if (!rateLimit.allowed) {
+    return tooManyRequests(
+      rateLimit.retryAfterSeconds,
+      "Too many checks from this connection. Try again in a minute.",
     );
   }
 
@@ -161,7 +147,7 @@ export async function POST(request: NextRequest) {
   const submittedUrl = typeof body?.url === "string" ? body.url.trim() : "";
   const url = normalizeUrl(body?.url);
 
-  if (!url) {
+  if (!url || submittedUrl.length > 2048) {
     return NextResponse.json({ error: "Enter a URL to check." }, { status: 400 });
   }
 
@@ -176,7 +162,7 @@ export async function POST(request: NextRequest) {
   const referrer = request.headers.get("referer");
 
   if (cached && cached.expiresAt > Date.now()) {
-    const websiteTestId = await recordWebsiteTest({
+    const websiteTest = await recordWebsiteTest({
       submittedUrl,
       normalizedUrl: cached.payload.url,
       source: cached.payload.source,
@@ -189,7 +175,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       url: cached.payload.url,
       scores: cached.payload.scores,
-      websiteTestId,
+      websiteTestId: websiteTest?.id,
+      websiteTestToken: websiteTest?.requestToken,
       source: cached.payload.source,
     });
   }
@@ -210,7 +197,7 @@ export async function POST(request: NextRequest) {
       payload,
     });
 
-    const websiteTestId = await recordWebsiteTest({
+    const websiteTest = await recordWebsiteTest({
       submittedUrl,
       normalizedUrl: url,
       source,
@@ -220,7 +207,13 @@ export async function POST(request: NextRequest) {
       status: "scored",
     });
 
-    return NextResponse.json({ url, scores, websiteTestId, source });
+    return NextResponse.json({
+      url,
+      scores,
+      websiteTestId: websiteTest?.id,
+      websiteTestToken: websiteTest?.requestToken,
+      source,
+    });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unable to score that site right now.";
 

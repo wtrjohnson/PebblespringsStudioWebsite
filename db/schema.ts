@@ -177,8 +177,19 @@ export const websiteTests = pgTable("website_tests", {
   status: text("status", { enum: ["scored", "failed"] }).notNull().default("scored"),
   errorMessage: text("error_message"),
   reportData: jsonb("report_data"),
+  requestTokenHash: text("request_token_hash").unique(),
+  requestTokenUsedAt: text("request_token_used_at"),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP::text`),
 });
+
+export const securityRateLimits = pgTable("security_rate_limits", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull().default(1),
+  windowStartedAt: text("window_started_at").notNull(),
+  expiresAt: text("expires_at").notNull(),
+}, (table) => ({
+  expiresAtIdx: index("security_rate_limits_expires_at_idx").on(table.expiresAt),
+}));
 
 export const portfolioScores = pgTable("portfolio_scores", {
   id: serial("id").primaryKey(),

@@ -71,6 +71,13 @@
       "when": 1786126400000,
       "tag": "0009_ops_monitoring_import",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792806202837,
+      "tag": "0010_colorful_starhawk",
+      "breakpoints": true
     }
   ]
 }
