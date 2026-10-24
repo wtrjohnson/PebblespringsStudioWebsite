@@ -3,9 +3,13 @@ import { SiteFooter } from "./SiteFooter.tsx";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://pebblesprings.co"),
   title: "Pebblesprings Studio",
   description:
     "Make your business look as good as it is. Pebblesprings Studio builds fast, distinctive websites for good businesses.",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "Pebblesprings Studio",
     description:
@@ -28,8 +32,9 @@ export const metadata: Metadata = {
     images: ["/PSLinkPreview.png"],
   },
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: [{ url: "/PSLogo.png", type: "image/png", sizes: "344x334" }],
+    shortcut: "/PSLogo.png",
+    apple: "/PSLogo.png",
   },
 };
 

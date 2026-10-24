@@ -39,7 +39,21 @@ const worker = {
       }, allowedWidths);
     }
 
-    return handler.fetch(request, env, ctx);
+    const response = await handler.fetch(request, env, ctx);
+    const headers = new Headers(response.headers);
+
+    // Keep browser security protections consistent for server-rendered pages,
+    // API responses, and static files served through the worker.
+    headers.set("X-Content-Type-Options", "nosniff");
+    headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+    headers.set("X-Frame-Options", "SAMEORIGIN");
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
   },
 };
 

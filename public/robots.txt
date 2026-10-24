@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /portal/
+Disallow: /report/
+Disallow: /api/
+
+Sitemap: https://pebblesprings.co/sitemap.xml
