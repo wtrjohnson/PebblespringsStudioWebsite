@@ -124,16 +124,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="alt-work" id="work" aria-label="Selected work">
-        <header className="alt-section-heading alt-work-heading">
-          <div>
-            <p className="alt-section-divider"><span>Selected work</span></p>
-            <h2>Websites built to make good businesses clearer, more credible, and easier to choose.</h2>
-          </div>
-          <p className="alt-section-note">
-            Strategy, identity, and web design shaped around what each business needs
-            people to understand—and remember.
-          </p>
+      <section className="alt-work" id="work" aria-label="Our work">
+        <header className="alt-work-title">
+          <h2>Our Work</h2>
         </header>
         <div className="alt-project-list">
           {projects.map((project, index) => (
@@ -174,8 +167,7 @@ export default function HomePage() {
       <section className="alt-performance" id="performance" aria-labelledby="alt-performance-title">
         <div className="alt-performance-intro">
           <div>
-            <p className="alt-section-divider"><span>Website performance</span></p>
-            <h2 id="alt-performance-title">The details you don&apos;t see still matter.</h2>
+            <h2 id="alt-performance-title">Performance Matters.</h2>
           </div>
           <p>
             We monitor the websites we build for speed, accessibility, technical quality,
@@ -188,8 +180,7 @@ export default function HomePage() {
       <section className="alt-priorities" id="priorities" aria-labelledby="alt-priorities-title">
         <header className="alt-section-heading alt-priorities-heading">
           <div>
-            <p className="alt-section-divider"><span>What guides the work</span></p>
-            <h2 id="alt-priorities-title">Useful first. Beautiful throughout.</h2>
+            <h2 id="alt-priorities-title">Our guiding principles</h2>
           </div>
         </header>
         <div className="alt-priority-grid">

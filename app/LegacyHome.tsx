@@ -755,7 +755,6 @@ export function PerformanceSection({
     >
       <section className="performance-scorecard" aria-label="Studio Lighthouse scorecard" ref={scorecardRef}>
         <div className="performance-heading">
-          {variant === "editorial" && <p className="performance-module-label">Our work</p>}
           <h2>{variant === "editorial" ? "How our websites perform" : "High-performing websites, guaranteed."}</h2>
           <p>
             {variant === "editorial"
@@ -858,7 +857,6 @@ export function PerformanceSection({
         <div className="checker-stage">
           <div className="checker-default" aria-hidden={shouldShowCheckerResults ? "true" : undefined}>
             <div className="checker-default-copy">
-              {variant === "editorial" && <p className="performance-module-label">Your website</p>}
               <h2>{variant === "editorial" ? "Check your website" : "See how your site is doing."}</h2>
               {variant === "editorial" && <p className="checker-intro">Get a quick look at the technical health of your current site.</p>}
             </div>
