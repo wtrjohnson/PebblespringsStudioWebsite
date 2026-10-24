@@ -263,6 +263,7 @@ body:has(.alt-home) > .global-footer {
   position: relative;
   z-index: 2;
   align-self: start;
+  transform: translateY(clamp(42px, 5vw, 76px));
 }
 
 .alt-hero h1 {
@@ -281,6 +282,7 @@ body:has(.alt-home) > .global-footer {
   display: grid;
   gap: 32px;
   align-self: start;
+  transform: translateY(clamp(42px, 5vw, 76px));
 }
 
 .alt-hero-landscape {
