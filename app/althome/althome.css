@@ -285,15 +285,14 @@ body:has(.alt-home) > .global-footer {
 
 .alt-hero-landscape {
   position: absolute;
-  right: 50%;
+  right: 0;
   bottom: 0;
-  left: auto;
+  left: 0;
   z-index: 0;
-  width: min(100%, 1000px);
-  aspect-ratio: 1672 / 941;
-  opacity: 0.54;
+  width: 100%;
+  aspect-ratio: 3344 / 941;
+  opacity: 0.48;
   pointer-events: none;
-  transform: translateX(50%);
 }
 
 .alt-hero-landscape img {
@@ -905,8 +904,9 @@ body:has(.alt-home) > .global-footer {
   .alt-hero-landscape {
     right: 50%;
     left: auto;
-    width: calc(100% + 32px);
+    width: 170%;
     opacity: 0.44;
+    transform: translateX(50%);
   }
 
   .alt-hero h1 {

@@ -191,7 +191,7 @@ export default function HomePage() {
 
       <section className="alt-hero" id="top" aria-labelledby="alt-hero-title">
         <div className="alt-hero-landscape" aria-hidden="true">
-          <img src="/hero-halftone-mountain.png" alt="" />
+          <img src="/hero-halftone-mountain-wide.png" alt="" />
         </div>
         <div className="alt-hero-heading">
           <h1 id="alt-hero-title">Make your business look as good as it is.</h1>
