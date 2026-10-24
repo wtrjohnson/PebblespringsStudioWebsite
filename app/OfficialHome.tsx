@@ -90,7 +90,7 @@ export default function HomePage() {
 
       advanceTimer = window.setTimeout(() => {
         if (!hasInteractedWithProjects.current) {
-          projectList.children.item(1)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+          projectList.scrollTo({ left: projectList.clientWidth, behavior: "smooth" });
         }
       }, 4800);
     };
@@ -124,10 +124,16 @@ export default function HomePage() {
 
   const moveToProject = (index: number) => {
     stopProjectAutoplay();
-    projectListRef.current?.children.item(index)?.scrollIntoView({
+    const projectList = projectListRef.current;
+
+    if (!projectList) {
+      return;
+    }
+
+    setActiveProjectIndex(index);
+    projectList.scrollTo({
+      left: projectList.clientWidth * index,
       behavior: "smooth",
-      block: "nearest",
-      inline: "start",
     });
   };
 
