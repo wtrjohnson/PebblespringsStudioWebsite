@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/PSLinkPreview.png",
+        url: "/og-home-v2.png",
         width: 1200,
         height: 630,
         alt: "Pebblesprings Studio portfolio preview",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     title: "Pebblesprings Studio",
     description:
       "Websites that make good businesses look the part—fast, sturdy, and built to feel like yours.",
-    images: ["/PSLinkPreview.png"],
+    images: ["/og-home-v2.png"],
   },
   icons: {
     icon: [{ url: "/PSLogo.png", type: "image/png", sizes: "344x334" }],

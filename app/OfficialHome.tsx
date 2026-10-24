@@ -106,6 +106,10 @@ export default function HomePage() {
       </div>
 
       <section className="alt-hero" id="top" aria-labelledby="alt-hero-title">
+        <div className="alt-hero-landscape" aria-hidden="true">
+          <span className="alt-mountain alt-mountain-back" />
+          <span className="alt-mountain alt-mountain-front" />
+        </div>
         <div className="alt-hero-heading">
           <h1 id="alt-hero-title">Make your business look as good as it is.</h1>
         </div>
@@ -121,6 +125,16 @@ export default function HomePage() {
       </section>
 
       <section className="alt-work" id="work" aria-label="Selected work">
+        <header className="alt-section-heading alt-work-heading">
+          <div>
+            <p className="alt-section-label">01 — Selected work</p>
+            <h2>Websites built to make good businesses clearer, more credible, and easier to choose.</h2>
+          </div>
+          <p className="alt-section-note">
+            Strategy, identity, and web design shaped around what each business needs
+            people to understand—and remember.
+          </p>
+        </header>
         <div className="alt-project-list">
           {projects.map((project, index) => (
             <article className="alt-project" key={project.id}>
@@ -159,18 +173,24 @@ export default function HomePage() {
 
       <section className="alt-performance" id="performance" aria-labelledby="alt-performance-title">
         <div className="alt-performance-intro">
-          <h2 id="alt-performance-title">The details you don&apos;t see still matter.</h2>
+          <div>
+            <p className="alt-section-label">02 — Website performance</p>
+            <h2 id="alt-performance-title">The details you don&apos;t see still matter.</h2>
+          </div>
           <p>
-            A beautiful website is only useful when it is fast, accessible, reliable,
-            and easy to find. Our work is measured against all four.
+            We monitor the websites we build for speed, accessibility, technical quality,
+            and search visibility—and you can check your own site below.
           </p>
         </div>
-        <PerformanceSection onStartFix={startFixConversation} />
+        <PerformanceSection onStartFix={startFixConversation} variant="editorial" />
       </section>
 
       <section className="alt-priorities" id="priorities" aria-labelledby="alt-priorities-title">
         <header className="alt-section-heading alt-priorities-heading">
-          <h2 id="alt-priorities-title">Useful first. Beautiful throughout.</h2>
+          <div>
+            <p className="alt-section-label">03 — What guides the work</p>
+            <h2 id="alt-priorities-title">Useful first. Beautiful throughout.</h2>
+          </div>
         </header>
         <div className="alt-priority-grid">
           {priorities.map((priority) => (
@@ -184,6 +204,7 @@ export default function HomePage() {
       </section>
 
       <section className="alt-contact" aria-labelledby="alt-contact-title">
+        <p className="alt-section-label">04 — Start a project</p>
         <h2 id="alt-contact-title">Let&apos;s make something worth remembering.</h2>
         <Link href="/contact">
           Start a conversation <Arrow />

@@ -475,8 +475,10 @@ function ScoreRing({
 
 export function PerformanceSection({
   onStartFix,
+  variant = "default",
 }: {
   onStartFix: (message: string) => void;
+  variant?: "default" | "editorial";
 }) {
   const [urlInput, setUrlInput] = useState("");
   const [result, setResult] = useState<ScoreResult | null>(null);
@@ -753,8 +755,13 @@ export function PerformanceSection({
     >
       <section className="performance-scorecard" aria-label="Studio Lighthouse scorecard" ref={scorecardRef}>
         <div className="performance-heading">
-          <h2>High-performing websites, guaranteed.</h2>
-          <p>Here&apos;s how our live websites measure up to our promise. Updated daily.</p>
+          {variant === "editorial" && <p className="performance-module-label">Our work</p>}
+          <h2>{variant === "editorial" ? "How our websites perform" : "High-performing websites, guaranteed."}</h2>
+          <p>
+            {variant === "editorial"
+              ? "Live measures of speed, accessibility, technical quality, and search visibility. Updated daily."
+              : "Here's how our live websites measure up to our promise. Updated daily."}
+          </p>
         </div>
 
         <div
@@ -851,7 +858,9 @@ export function PerformanceSection({
         <div className="checker-stage">
           <div className="checker-default" aria-hidden={shouldShowCheckerResults ? "true" : undefined}>
             <div className="checker-default-copy">
-              <h2>See how your site is doing.</h2>
+              {variant === "editorial" && <p className="performance-module-label">Your website</p>}
+              <h2>{variant === "editorial" ? "Check your website" : "See how your site is doing."}</h2>
+              {variant === "editorial" && <p className="checker-intro">Get a quick look at the technical health of your current site.</p>}
             </div>
             <form className="checker-form" onSubmit={handleSubmit}>
               <label className="sr-only" htmlFor="website-url">
@@ -875,7 +884,7 @@ export function PerformanceSection({
 
           <div className="checker-results" aria-live="polite">
             <div className="checker-results-header">
-              <h2>See how your site is doing.</h2>
+              <h2>{variant === "editorial" ? "Your website results" : "See how your site is doing."}</h2>
               {isChecking && <p className="results-label">Checking {displayUrl(pendingUrl)}</p>}
               {result && <p className="results-label">Scores for {displayUrl(result.url)}</p>}
             </div>
