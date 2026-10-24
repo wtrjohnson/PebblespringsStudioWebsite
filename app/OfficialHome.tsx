@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PerformanceSection } from "./LegacyHome.tsx";
 import { carouselProjects } from "./portfolioData.ts";
 import "./althome/althome.css";
@@ -40,6 +40,9 @@ function Arrow() {
 export default function HomePage() {
   const [isMiniNavVisible, setIsMiniNavVisible] = useState(false);
   const [isMiniNavOpen, setIsMiniNavOpen] = useState(false);
+  const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+  const projectListRef = useRef<HTMLDivElement>(null);
+  const hasInteractedWithProjects = useRef(false);
 
   useEffect(() => {
     const updateMiniNav = () => {
@@ -62,8 +65,83 @@ export default function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    const projectList = projectListRef.current;
+
+    if (!projectList) {
+      return;
+    }
+
+    const mobileQuery = window.matchMedia("(max-width: 640px)");
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let advanceTimer: number | undefined;
+
+    const clearAdvanceTimer = () => {
+      if (advanceTimer) {
+        window.clearTimeout(advanceTimer);
+        advanceTimer = undefined;
+      }
+    };
+
+    const scheduleAdvance = () => {
+      if (!mobileQuery.matches || reducedMotionQuery.matches || hasInteractedWithProjects.current || advanceTimer) {
+        return;
+      }
+
+      advanceTimer = window.setTimeout(() => {
+        if (!hasInteractedWithProjects.current) {
+          projectList.children.item(1)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+        }
+      }, 4800);
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          scheduleAdvance();
+        } else {
+          clearAdvanceTimer();
+        }
+      },
+      { threshold: 0.35 },
+    );
+
+    observer.observe(projectList);
+
+    return () => {
+      clearAdvanceTimer();
+      observer.disconnect();
+    };
+  }, []);
+
   const startFixConversation = (message: string) => {
     window.location.assign(`/contact?message=${encodeURIComponent(message)}`);
+  };
+
+  const stopProjectAutoplay = () => {
+    hasInteractedWithProjects.current = true;
+  };
+
+  const moveToProject = (index: number) => {
+    stopProjectAutoplay();
+    projectListRef.current?.children.item(index)?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "start",
+    });
+  };
+
+  const updateActiveProject = () => {
+    const projectList = projectListRef.current;
+
+    if (!projectList) {
+      return;
+    }
+
+    setActiveProjectIndex(Math.min(
+      projects.length - 1,
+      Math.max(0, Math.round(projectList.scrollLeft / projectList.clientWidth)),
+    ));
   };
 
   return (
@@ -128,7 +206,13 @@ export default function HomePage() {
         <header className="alt-work-title">
           <h2>Our Work</h2>
         </header>
-        <div className="alt-project-list">
+        <div
+          className="alt-project-list"
+          onFocusCapture={stopProjectAutoplay}
+          onPointerDown={stopProjectAutoplay}
+          onScroll={updateActiveProject}
+          ref={projectListRef}
+        >
           {projects.map((project, index) => (
             <article className="alt-project" key={project.id}>
               <div className="alt-project-copy">
@@ -161,6 +245,29 @@ export default function HomePage() {
               </a>
             </article>
           ))}
+        </div>
+        <div
+          className="alt-project-gallery-controls"
+          aria-label="Project gallery controls"
+          onFocusCapture={stopProjectAutoplay}
+        >
+          <button
+            aria-label="Previous project"
+            disabled={activeProjectIndex === 0}
+            onClick={() => moveToProject(activeProjectIndex - 1)}
+            type="button"
+          >
+            <span aria-hidden="true">←</span>
+          </button>
+          <p aria-live="polite">{activeProjectIndex + 1} / {projects.length}</p>
+          <button
+            aria-label="Next project"
+            disabled={activeProjectIndex === projects.length - 1}
+            onClick={() => moveToProject(activeProjectIndex + 1)}
+            type="button"
+          >
+            <span aria-hidden="true">→</span>
+          </button>
         </div>
       </section>
 
