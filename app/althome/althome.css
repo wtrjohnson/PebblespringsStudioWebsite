@@ -289,44 +289,20 @@ body:has(.alt-home) > .global-footer {
   bottom: 0;
   left: 0;
   z-index: 0;
-  height: clamp(190px, 34vw, 360px);
+  height: clamp(220px, 32vw, 430px);
   overflow: hidden;
-  opacity: 0.76;
+  opacity: 0.82;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 28%, #000 78%, transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 28%, #000 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 25%, #000 82%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 25%, #000 82%, transparent 100%);
 }
 
-.alt-mountain {
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, currentColor 1.2px, transparent 1.35px);
-  background-position: center bottom;
-  background-size: 7px 7px;
-  color: rgba(23, 23, 23, 0.14);
-  animation: alt-mountain-enter 900ms var(--alt-ease) both;
-}
-
-.alt-mountain-back {
-  clip-path: polygon(0 72%, 8% 58%, 16% 66%, 25% 39%, 33% 62%, 43% 28%, 51% 54%, 61% 34%, 70% 63%, 79% 46%, 88% 67%, 100% 55%, 100% 100%, 0 100%);
-  transform: translateY(7%);
-}
-
-.alt-mountain-front {
-  background-size: 6px 6px;
-  color: rgba(23, 23, 23, 0.32);
-  clip-path: polygon(0 79%, 10% 69%, 19% 78%, 29% 55%, 37% 75%, 48% 47%, 57% 70%, 67% 51%, 76% 76%, 87% 62%, 100% 74%, 100% 100%, 0 100%);
-  animation-delay: 90ms;
-}
-
-@keyframes alt-mountain-enter {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+.alt-hero-landscape img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
 }
 
 .alt-hero-aside > p {
