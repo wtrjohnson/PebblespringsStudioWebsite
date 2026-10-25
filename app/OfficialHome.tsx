@@ -1,12 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { PerformanceSection } from "./LegacyHome.tsx";
 import { carouselProjects } from "./portfolioData.ts";
 import "./althome/althome.css";
 
 const projects = carouselProjects.filter((project) => !project.isProposition);
+const gallerySlides = [
+  { project: projects[projects.length - 1], projectIndex: projects.length - 1, isClone: true, key: "project-clone-last" },
+  ...projects.map((project, projectIndex) => ({ project, projectIndex, isClone: false, key: project.id })),
+  { project: projects[0], projectIndex: 0, isClone: true, key: "project-clone-first" },
+];
 
 const projectDescriptions: Record<string, string> = {
   "slipstream-advocacy": "We created a confident identity for a new firm to establish trust fast. Focused positioning and a direct website give a small team the presence and credibility of a much larger firm.",
@@ -41,8 +46,22 @@ export default function HomePage() {
   const [isMiniNavVisible, setIsMiniNavVisible] = useState(false);
   const [isMiniNavOpen, setIsMiniNavOpen] = useState(false);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+  const [indicatorFromIndex, setIndicatorFromIndex] = useState(0);
   const projectListRef = useRef<HTMLDivElement>(null);
+  const activeProjectIndexRef = useRef(0);
   const hasInteractedWithProjects = useRef(false);
+  const projectScrollSettleTimer = useRef<number | undefined>(undefined);
+
+  const setActiveProject = (index: number) => {
+    const normalizedIndex = (index + projects.length) % projects.length;
+    const previousIndex = activeProjectIndexRef.current;
+
+    if (normalizedIndex !== previousIndex) {
+      setIndicatorFromIndex(previousIndex);
+      activeProjectIndexRef.current = normalizedIndex;
+      setActiveProjectIndex(normalizedIndex);
+    }
+  };
 
   useEffect(() => {
     const updateMiniNav = () => {
@@ -90,7 +109,7 @@ export default function HomePage() {
 
       advanceTimer = window.setTimeout(() => {
         if (!hasInteractedWithProjects.current) {
-          projectList.scrollTo({ left: projectList.clientWidth, behavior: "smooth" });
+          moveToProject(activeProjectIndexRef.current + 1, false);
         }
       }, 4800);
     };
@@ -112,6 +131,37 @@ export default function HomePage() {
       clearAdvanceTimer();
       observer.disconnect();
     };
+  }, [activeProjectIndex]);
+
+  useEffect(() => {
+    const projectList = projectListRef.current;
+
+    if (!projectList) {
+      return;
+    }
+
+    const mobileQuery = window.matchMedia("(max-width: 640px)");
+    const alignRail = () => {
+      if (mobileQuery.matches) {
+        projectList.scrollTo({ left: projectList.clientWidth * (activeProjectIndexRef.current + 1), behavior: "auto" });
+      }
+    };
+
+    const frameId = window.requestAnimationFrame(alignRail);
+    window.addEventListener("resize", alignRail);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", alignRail);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (projectScrollSettleTimer.current) {
+        window.clearTimeout(projectScrollSettleTimer.current);
+      }
+    };
   }, []);
 
   const startFixConversation = (message: string) => {
@@ -122,19 +172,30 @@ export default function HomePage() {
     hasInteractedWithProjects.current = true;
   };
 
-  const moveToProject = (index: number) => {
-    stopProjectAutoplay();
+  const moveToProject = (index: number, shouldStopAutoplay = true) => {
+    if (shouldStopAutoplay) {
+      stopProjectAutoplay();
+    }
+
     const projectList = projectListRef.current;
 
     if (!projectList) {
       return;
     }
 
-    const targetIndex = Math.max(0, Math.min(projects.length - 1, index));
+    const targetIndex = (index + projects.length) % projects.length;
+    const currentIndex = activeProjectIndexRef.current;
+    const wrapsForward = currentIndex === projects.length - 1 && targetIndex === 0;
+    const wrapsBackward = currentIndex === 0 && targetIndex === projects.length - 1;
+    const physicalIndex = wrapsForward
+      ? projects.length + 1
+      : wrapsBackward
+        ? 0
+        : targetIndex + 1;
 
-    setActiveProjectIndex(targetIndex);
+    setActiveProject(targetIndex);
     projectList.scrollTo({
-      left: projectList.clientWidth * targetIndex,
+      left: projectList.clientWidth * physicalIndex,
       behavior: "smooth",
     });
   };
@@ -142,15 +203,91 @@ export default function HomePage() {
   const updateActiveProject = () => {
     const projectList = projectListRef.current;
 
-    if (!projectList) {
+    if (!projectList || !window.matchMedia("(max-width: 640px)").matches) {
       return;
     }
 
-    setActiveProjectIndex(Math.min(
-      projects.length - 1,
-      Math.max(0, Math.round(projectList.scrollLeft / projectList.clientWidth)),
-    ));
+    const physicalIndex = Math.round(projectList.scrollLeft / projectList.clientWidth);
+    const projectIndex = physicalIndex === 0
+      ? projects.length - 1
+      : physicalIndex === projects.length + 1
+        ? 0
+        : physicalIndex - 1;
+
+    setActiveProject(projectIndex);
+
+    if (projectScrollSettleTimer.current) {
+      window.clearTimeout(projectScrollSettleTimer.current);
+    }
+
+    projectScrollSettleTimer.current = window.setTimeout(() => {
+      if (physicalIndex === 0 || physicalIndex === projects.length + 1) {
+        projectList.scrollTo({
+          left: projectList.clientWidth * (projectIndex + 1),
+          behavior: "auto",
+        });
+      }
+    }, 120);
   };
+
+  const previousProjectIndex = (activeProjectIndex + projects.length - 1) % projects.length;
+  const nextProjectIndex = (activeProjectIndex + 1) % projects.length;
+  const indicatorStyle = {
+    "--indicator-from": `${indicatorFromIndex * 29}px`,
+    "--indicator-to": `${activeProjectIndex * 29}px`,
+  } as CSSProperties;
+
+  const renderProject = (
+    project: typeof projects[number],
+    index: number,
+    isClone: boolean,
+  ) => (
+    <article
+      aria-hidden={isClone || undefined}
+      className={["alt-project", isClone ? "is-mobile-clone" : ""].filter(Boolean).join(" ")}
+      key={isClone ? `clone-${project.id}-${index}` : project.id}
+    >
+      <div className="alt-project-copy">
+        <div>
+          <h3>{project.title}</h3>
+          {projectDescriptions[project.id] && (
+            <p className="alt-project-description">{projectDescriptions[project.id]}</p>
+          )}
+        </div>
+        <div className="alt-project-meta">
+          {project.scope && (
+            <ul aria-label={`${project.title} project scope`}>
+              {project.scope.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          )}
+          {isClone ? (
+            <span className="alt-project-link-placeholder">Visit live site <Arrow /></span>
+          ) : (
+            <a href={project.url} target="_blank" rel="noreferrer">
+              Visit live site <Arrow />
+            </a>
+          )}
+        </div>
+      </div>
+      {isClone ? (
+        <div className="alt-project-visual" aria-hidden="true">
+          <img src={project.image} alt="" loading="lazy" />
+          <span>View project <Arrow /></span>
+        </div>
+      ) : (
+        <a
+          className="alt-project-visual"
+          href={project.url}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Visit the ${project.title} website`}
+        >
+          <img src={project.image} alt={`${project.title} website preview`} loading={index > 0 ? "lazy" : "eager"} />
+          <span>View project <Arrow /></span>
+        </a>
+      )}
+    </article>
+  );
 
   return (
     <main className="alt-home">
@@ -221,38 +358,7 @@ export default function HomePage() {
           onScroll={updateActiveProject}
           ref={projectListRef}
         >
-          {projects.map((project, index) => (
-            <article className="alt-project" key={project.id}>
-              <div className="alt-project-copy">
-                <div>
-                  <h3>{project.title}</h3>
-                  {projectDescriptions[project.id] && (
-                    <p className="alt-project-description">{projectDescriptions[project.id]}</p>
-                  )}
-                </div>
-                <div className="alt-project-meta">
-                  {project.scope && (
-                    <ul aria-label={`${project.title} project scope`}>
-                      {project.scope.map((item) => <li key={item}>{item}</li>)}
-                    </ul>
-                  )}
-                  <a href={project.url} target="_blank" rel="noreferrer">
-                    Visit live site <Arrow />
-                  </a>
-                </div>
-              </div>
-              <a
-                className="alt-project-visual"
-                href={project.url}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`Visit the ${project.title} website`}
-              >
-                <img src={project.image} alt={`${project.title} website preview`} loading={index > 0 ? "lazy" : "eager"} />
-                <span>View project <Arrow /></span>
-              </a>
-            </article>
-          ))}
+          {gallerySlides.map(({ project, projectIndex, isClone }) => renderProject(project, projectIndex, isClone))}
         </div>
         <div
           className="alt-project-gallery-controls"
@@ -260,15 +366,20 @@ export default function HomePage() {
           onFocusCapture={stopProjectAutoplay}
         >
           <button
-            aria-label="Previous project"
+            aria-label={`Previous project: ${projects[previousProjectIndex].title}`}
             className="alt-project-gallery-arrow alt-project-gallery-arrow-previous"
-            disabled={activeProjectIndex === 0}
-            onClick={() => moveToProject(activeProjectIndex - 1)}
+            onClick={() => moveToProject(previousProjectIndex)}
             type="button"
           >
             <span className="alt-gallery-chevron" aria-hidden="true" />
           </button>
           <div className="alt-project-gallery-picker" aria-label="Choose a project">
+            <span
+              aria-hidden="true"
+              className="alt-project-gallery-indicator"
+              key={`${indicatorFromIndex}-${activeProjectIndex}`}
+              style={indicatorStyle}
+            />
             {projects.map((project, index) => (
               <button
                 aria-controls="project-gallery"
@@ -284,10 +395,9 @@ export default function HomePage() {
             ))}
           </div>
           <button
-            aria-label="Next project"
+            aria-label={`Next project: ${projects[nextProjectIndex].title}`}
             className="alt-project-gallery-arrow alt-project-gallery-arrow-next"
-            disabled={activeProjectIndex === projects.length - 1}
-            onClick={() => moveToProject(activeProjectIndex + 1)}
+            onClick={() => moveToProject(nextProjectIndex)}
             type="button"
           >
             <span className="alt-gallery-chevron" aria-hidden="true" />
