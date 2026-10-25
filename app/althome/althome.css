@@ -901,14 +901,17 @@ body:has(.alt-home) > .global-footer {
     min-height: clamp(460px, calc(76svh - 72px), 560px);
     gap: 34px;
     padding: 52px 0;
+    overflow: clip;
   }
 
   .alt-hero-landscape {
-    right: 50%;
-    left: auto;
-    width: 170%;
+    right: auto;
+    bottom: -28px;
+    left: 50%;
+    width: max(100%, 640px);
+    max-width: none;
     opacity: 0.44;
-    transform: translateX(50%);
+    transform: translateX(-50%);
   }
 
   .alt-hero h1 {
