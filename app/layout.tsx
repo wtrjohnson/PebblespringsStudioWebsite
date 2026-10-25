@@ -4,9 +4,9 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pebblesprings.co"),
-  title: "Pebblesprings Studio",
+  title: "Pebblesprings Studio | Website Design & Development",
   description:
-    "Make your business look as good as it is. Pebblesprings Studio builds fast, distinctive websites for good businesses.",
+    "Fast, distinctive websites for businesses doing good work. Strategy, design, and development by Pebblesprings Studio.",
   alternates: {
     canonical: "/",
   },
@@ -32,11 +32,29 @@ export const metadata: Metadata = {
     images: ["/og-home-v3.png"],
   },
   icons: {
-    icon: [{ url: "/PSLogo.png", type: "image/png", sizes: "344x334" }],
-    shortcut: "/PSLogo.png",
-    apple: "/PSLogo.png",
+    icon: [{ url: "/icon.png", type: "image/png", sizes: "192x192" }],
+    shortcut: "/icon.png",
+    apple: [{ url: "/icon.png", sizes: "192x192", type: "image/png" }],
   },
 };
+
+const structuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Pebblesprings Studio",
+    url: "https://pebblesprings.co",
+    logo: "https://pebblesprings.co/icon.png",
+    description:
+      "Fast, distinctive websites for businesses doing good work. Strategy, design, and development by Pebblesprings Studio.",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Pebblesprings Studio",
+    url: "https://pebblesprings.co",
+  },
+];
 
 export default function RootLayout({
   children,
@@ -54,6 +72,10 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
         {children}
         <SiteFooter />
       </body>
