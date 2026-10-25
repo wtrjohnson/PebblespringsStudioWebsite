@@ -1015,40 +1015,89 @@ body:has(.alt-home) > .global-footer {
     margin-top: -40px;
   }
 
-  .alt-project-gallery-controls button {
+  .alt-project-gallery-arrow {
     display: grid;
-    width: 34px;
-    height: 34px;
-    border: 1px solid var(--alt-line);
+    width: 32px;
+    height: 32px;
+    border: 0;
     border-radius: 50%;
-    background: var(--alt-paper);
+    background: var(--alt-ink);
     color: var(--alt-ink);
     cursor: pointer;
     padding: 0;
     place-items: center;
-    transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+    transition: background 180ms ease, opacity 180ms ease, transform 180ms var(--alt-ease);
   }
 
-  .alt-project-gallery-controls button:not(:disabled):hover,
-  .alt-project-gallery-controls button:not(:disabled):focus-visible {
-    border-color: var(--alt-ink);
-    background: var(--alt-ink);
-    color: var(--alt-paper);
+  .alt-project-gallery-arrow:not(:disabled):hover,
+  .alt-project-gallery-arrow:not(:disabled):focus-visible {
+    background: #0071e3;
+    transform: scale(1.06);
   }
 
-  .alt-project-gallery-controls button:disabled {
+  .alt-project-gallery-arrow:disabled {
     cursor: default;
-    opacity: 0.35;
+    opacity: 0.2;
   }
 
-  .alt-project-gallery-controls p {
-    min-width: 36px;
-    margin: 0;
+  .alt-gallery-chevron {
+    display: block;
+    width: 7px;
+    height: 7px;
+    border-bottom: 1.5px solid var(--alt-paper);
+    border-left: 1.5px solid var(--alt-paper);
+    transform: rotate(45deg);
+  }
+
+  .alt-project-gallery-arrow-next .alt-gallery-chevron {
+    transform: rotate(225deg);
+  }
+
+  .alt-project-gallery-picker {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    border: 1px solid var(--alt-line);
+    border-radius: 999px;
+    background: var(--alt-paper);
+    padding: 3px;
+  }
+
+  .alt-project-gallery-picker button {
+    display: grid;
+    width: 29px;
+    height: 24px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
     color: var(--alt-muted);
-    font-size: 12px;
-    font-weight: 620;
-    letter-spacing: -0.01em;
-    text-align: center;
+    cursor: pointer;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 0;
+    place-items: center;
+    transition: background 180ms ease, color 180ms ease;
+  }
+
+  .alt-project-gallery-picker button:hover,
+  .alt-project-gallery-picker button:focus-visible {
+    color: var(--alt-ink);
+  }
+
+  .alt-project-gallery-picker button.is-active {
+    background: #0071e3;
+    color: #ffffff;
+  }
+
+  .alt-project-gallery-picker button:focus-visible {
+    outline: 2px solid #0071e3;
+    outline-offset: 2px;
+  }
+
+  .alt-project-gallery-picker button:active {
+    background: #005fbf;
+    color: #ffffff;
   }
 
   .alt-project-copy {

@@ -130,9 +130,11 @@ export default function HomePage() {
       return;
     }
 
-    setActiveProjectIndex(index);
+    const targetIndex = Math.max(0, Math.min(projects.length - 1, index));
+
+    setActiveProjectIndex(targetIndex);
     projectList.scrollTo({
-      left: projectList.clientWidth * index,
+      left: projectList.clientWidth * targetIndex,
       behavior: "smooth",
     });
   };
@@ -212,6 +214,7 @@ export default function HomePage() {
           <h2>Our Work</h2>
         </header>
         <div
+          id="project-gallery"
           className="alt-project-list"
           onFocusCapture={stopProjectAutoplay}
           onPointerDown={stopProjectAutoplay}
@@ -258,20 +261,36 @@ export default function HomePage() {
         >
           <button
             aria-label="Previous project"
+            className="alt-project-gallery-arrow alt-project-gallery-arrow-previous"
             disabled={activeProjectIndex === 0}
             onClick={() => moveToProject(activeProjectIndex - 1)}
             type="button"
           >
-            <span aria-hidden="true">←</span>
+            <span className="alt-gallery-chevron" aria-hidden="true" />
           </button>
-          <p aria-live="polite">{activeProjectIndex + 1} / {projects.length}</p>
+          <div className="alt-project-gallery-picker" aria-label="Choose a project">
+            {projects.map((project, index) => (
+              <button
+                aria-controls="project-gallery"
+                aria-current={activeProjectIndex === index ? "true" : undefined}
+                aria-label={`View ${project.title}`}
+                className={activeProjectIndex === index ? "is-active" : undefined}
+                key={project.id}
+                onClick={() => moveToProject(index)}
+                type="button"
+              >
+                {String(index + 1).padStart(2, "0")}
+              </button>
+            ))}
+          </div>
           <button
             aria-label="Next project"
+            className="alt-project-gallery-arrow alt-project-gallery-arrow-next"
             disabled={activeProjectIndex === projects.length - 1}
             onClick={() => moveToProject(activeProjectIndex + 1)}
             type="button"
           >
-            <span aria-hidden="true">→</span>
+            <span className="alt-gallery-chevron" aria-hidden="true" />
           </button>
         </div>
       </section>
