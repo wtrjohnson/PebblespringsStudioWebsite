@@ -858,7 +858,7 @@ export function PerformanceSection({
           <div className="checker-default" aria-hidden={shouldShowCheckerResults ? "true" : undefined}>
             <div className="checker-default-copy">
               <h2>{variant === "editorial" ? "Check your website" : "See how your site is doing."}</h2>
-              {variant === "editorial" && <p className="checker-intro">Get a quick look at the technical health of your current site.</p>}
+              {variant === "editorial" && <p className="checker-intro">Get a quick look at the health of your current site.</p>}
             </div>
             <form className="checker-form" onSubmit={handleSubmit}>
               <label className="sr-only" htmlFor="website-url">
@@ -874,7 +874,7 @@ export function PerformanceSection({
                 disabled={status === "loading"}
               />
               <button type="submit" disabled={status === "loading"}>
-                {status === "loading" ? "Checking Site" : "Check My Site"}
+                {status === "loading" ? "Checking Site" : "Check Site"}
               </button>
             </form>
             {status === "error" && <p className="checker-error">{errorMessage}</p>}

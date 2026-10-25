@@ -40,7 +40,6 @@ export default async function ContactPage({
         <p>© 2026 Pebblesprings Studio</p>
         <nav aria-label="Footer navigation">
           <Link href="/">Home</Link>
-          <Link href="/portal/login">Client portal</Link>
           <Link href="/privacy">Privacy</Link>
         </nav>
       </footer>

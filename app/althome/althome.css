@@ -451,8 +451,7 @@ body:has(.alt-home) > .global-footer {
   content: "/";
 }
 
-.alt-project-meta > a,
-.alt-contact > a {
+.alt-project-meta > a {
   display: inline-flex;
   width: fit-content;
   align-items: center;
@@ -463,13 +462,44 @@ body:has(.alt-home) > .global-footer {
   font-weight: 600;
 }
 
-.alt-project-meta > a span,
-.alt-contact > a span {
+.alt-arrow {
+  position: relative;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
   transition: transform 180ms var(--alt-ease);
 }
 
-.alt-project-meta > a:hover span,
-.alt-contact > a:hover span {
+.alt-arrow::before,
+.alt-arrow::after {
+  position: absolute;
+  display: block;
+  background: currentColor;
+  content: "";
+}
+
+.alt-arrow::before {
+  top: 7px;
+  left: 0;
+  width: 13px;
+  height: 1.5px;
+  transform: rotate(-45deg);
+  transform-origin: left center;
+}
+
+.alt-arrow::after {
+  top: 0;
+  right: 0;
+  width: 7px;
+  height: 7px;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  background: transparent;
+}
+
+.alt-project-meta > a:hover .alt-arrow,
+.alt-project-meta > a:focus-visible .alt-arrow {
   transform: translate(3px, -3px);
 }
 
@@ -522,6 +552,12 @@ body:has(.alt-home) > .global-footer {
   opacity: 0;
   transform: translateY(7px);
   transition: opacity 180ms ease, transform 220ms var(--alt-ease);
+}
+
+.alt-project-visual > span .alt-arrow {
+  width: 10px;
+  height: 10px;
+  flex-basis: 10px;
 }
 
 .alt-project-visual:hover img,
@@ -741,6 +777,7 @@ body:has(.alt-home) > .global-footer {
 
 .alt-priority-grid article > p:last-child {
   max-width: 330px;
+  min-height: calc(1.55em * 3);
   margin: 0;
   color: #a7a7a3;
   font-size: 14px;
@@ -770,6 +807,34 @@ body:has(.alt-home) > .global-footer {
 
 .alt-contact > a {
   margin-top: 50px;
+}
+
+.alt-contact > .alt-contact-action {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 12px;
+  border-radius: 999px;
+  background: #0071e3;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.14);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  padding: 0 18px;
+  transition: background 180ms var(--alt-ease), transform 180ms var(--alt-ease);
+}
+
+.alt-contact > .alt-contact-action:hover,
+.alt-contact > .alt-contact-action:focus-visible {
+  background: #0077ed;
+  transform: translateY(-2px);
+}
+
+.alt-contact > .alt-contact-action:hover .alt-arrow,
+.alt-contact > .alt-contact-action:focus-visible .alt-arrow {
+  transform: translate(2px, -2px);
 }
 
 .alt-footer {
