@@ -17,10 +17,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-home-v3.png",
+        url: "/og-home-v4.png",
         width: 1200,
         height: 630,
-        alt: "Pebblesprings Studio portfolio preview",
+        alt: "Pebblesprings Studio: fast and distinctive websites built around your business.",
       },
     ],
   },
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     title: "Pebblesprings Studio",
     description:
       "Websites that make good businesses look the part—fast, sturdy, and built to feel like yours.",
-    images: ["/og-home-v3.png"],
+    images: ["/og-home-v4.png"],
   },
   icons: {
     icon: [{ url: "/icon.png", type: "image/png", sizes: "192x192" }],
