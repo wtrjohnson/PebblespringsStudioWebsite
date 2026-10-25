@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PerformanceSection } from "./LegacyHome.tsx";
 import { carouselProjects } from "./portfolioData.ts";
 import "./althome/althome.css";
@@ -46,7 +46,6 @@ export default function HomePage() {
   const [isMiniNavVisible, setIsMiniNavVisible] = useState(false);
   const [isMiniNavOpen, setIsMiniNavOpen] = useState(false);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
-  const [indicatorFromIndex, setIndicatorFromIndex] = useState(0);
   const projectListRef = useRef<HTMLDivElement>(null);
   const activeProjectIndexRef = useRef(0);
   const hasInteractedWithProjects = useRef(false);
@@ -54,10 +53,7 @@ export default function HomePage() {
 
   const setActiveProject = (index: number) => {
     const normalizedIndex = (index + projects.length) % projects.length;
-    const previousIndex = activeProjectIndexRef.current;
-
-    if (normalizedIndex !== previousIndex) {
-      setIndicatorFromIndex(previousIndex);
+    if (normalizedIndex !== activeProjectIndexRef.current) {
       activeProjectIndexRef.current = normalizedIndex;
       setActiveProjectIndex(normalizedIndex);
     }
@@ -232,10 +228,6 @@ export default function HomePage() {
 
   const previousProjectIndex = (activeProjectIndex + projects.length - 1) % projects.length;
   const nextProjectIndex = (activeProjectIndex + 1) % projects.length;
-  const indicatorStyle = {
-    "--indicator-from": `${indicatorFromIndex * 29}px`,
-    "--indicator-to": `${activeProjectIndex * 29}px`,
-  } as CSSProperties;
 
   const renderProject = (
     project: typeof projects[number],
@@ -374,12 +366,6 @@ export default function HomePage() {
             <span className="alt-gallery-chevron" aria-hidden="true" />
           </button>
           <div className="alt-project-gallery-picker" aria-label="Choose a project">
-            <span
-              aria-hidden="true"
-              className="alt-project-gallery-indicator"
-              key={`${indicatorFromIndex}-${activeProjectIndex}`}
-              style={indicatorStyle}
-            />
             {projects.map((project, index) => (
               <button
                 aria-controls="project-gallery"

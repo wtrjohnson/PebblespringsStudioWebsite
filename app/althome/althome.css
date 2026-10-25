@@ -1093,6 +1093,8 @@ body:has(.alt-home) > .global-footer {
   }
 
   .alt-project-gallery-picker button.is-active {
+    background: #0071e3;
+    border-radius: 50%;
     color: #ffffff;
   }
 
@@ -1103,33 +1105,6 @@ body:has(.alt-home) > .global-footer {
 
   .alt-project-gallery-picker button:active {
     color: #0071e3;
-  }
-
-  .alt-project-gallery-indicator {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #0071e3;
-    pointer-events: none;
-    transform: translateX(var(--indicator-to));
-    animation: alt-gallery-indicator-move 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
-  @keyframes alt-gallery-indicator-move {
-    0% {
-      transform: translateX(var(--indicator-from)) scaleX(1);
-    }
-
-    55% {
-      transform: translateX(var(--indicator-to)) scaleX(1.38);
-    }
-
-    100% {
-      transform: translateX(var(--indicator-to)) scaleX(1);
-    }
   }
 
   .alt-project-copy {
@@ -1214,8 +1189,4 @@ body:has(.alt-home) > .global-footer {
     transition-duration: 0.01ms !important;
   }
 
-  .alt-project-gallery-indicator {
-    animation: none !important;
-    transform: translateX(var(--indicator-to));
-  }
 }
