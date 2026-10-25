@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://pebblesprings.co"),
   title: "Pebblesprings Studio | Website Design & Development",
   description:
-    "Fast and distinctive websites for all businesses. Strategy, design, and development by Pebblesprings Studio.",
+    "Fast and distinctive websites built around your business. Strategy, design, and development by Pebblesprings Studio.",
   alternates: {
     canonical: "/",
   },
@@ -46,7 +46,7 @@ const structuredData = [
     url: "https://pebblesprings.co",
     logo: "https://pebblesprings.co/icon.png",
     description:
-      "Fast and distinctive websites for all businesses. Strategy, design, and development by Pebblesprings Studio.",
+      "Fast and distinctive websites built around your business. Strategy, design, and development by Pebblesprings Studio.",
   },
   {
     "@context": "https://schema.org",
