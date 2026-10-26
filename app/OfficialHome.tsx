@@ -8,7 +8,7 @@ import { carouselProjects } from "./portfolioData.ts";
 import "./althome/althome.css";
 
 const projects = carouselProjects.filter((project) => !project.isProposition);
-const PICKER_MARKER_DURATION = 260;
+const PROJECT_TRANSITION_DURATION = 520;
 const gallerySlides = [
   { project: projects[projects.length - 1], projectIndex: projects.length - 1, isClone: true, key: "project-clone-last" },
   ...projects.map((project, projectIndex) => ({ project, projectIndex, isClone: false, key: project.id })),
@@ -51,56 +51,30 @@ export default function HomePage() {
   const [pickerMarkerIndex, setPickerMarkerIndex] = useState(0);
   const [pickerMarkerTextIndex, setPickerMarkerTextIndex] = useState(0);
   const [isPickerMarkerResetting, setIsPickerMarkerResetting] = useState(false);
+  const [isProjectTransitioning, setIsProjectTransitioning] = useState(false);
   const projectListRef = useRef<HTMLDivElement>(null);
+  const projectPickerRef = useRef<HTMLDivElement>(null);
   const activeProjectIndexRef = useRef(0);
   const hasInteractedWithProjects = useRef(false);
   const projectScrollSettleTimer = useRef<number | undefined>(undefined);
-  const pickerMarkerTimer = useRef<number | undefined>(undefined);
-  const pickerMarkerFrame = useRef<number | undefined>(undefined);
+  const projectAnimationFrame = useRef<number | undefined>(undefined);
+  const isProjectTransitioningRef = useRef(false);
 
-  const movePickerMarker = (index: number, currentIndex: number) => {
-    if (pickerMarkerTimer.current) {
-      window.clearTimeout(pickerMarkerTimer.current);
-    }
+  const setPickerMarkerPosition = (index: number) => {
+    projectPickerRef.current?.style.setProperty("--picker-marker-index", String(index));
+  };
 
-    if (pickerMarkerFrame.current) {
-      window.cancelAnimationFrame(pickerMarkerFrame.current);
-    }
-
-    const wrapsForward = currentIndex === projects.length - 1 && index === 0;
-    const wrapsBackward = currentIndex === 0 && index === projects.length - 1;
-
-    if (!wrapsForward && !wrapsBackward) {
-      setIsPickerMarkerResetting(false);
-      setPickerMarkerIndex(index);
-      setPickerMarkerTextIndex(index);
-      return;
-    }
-
-    setIsPickerMarkerResetting(false);
-    setPickerMarkerTextIndex(currentIndex);
-    setPickerMarkerIndex(wrapsForward ? projects.length : -1);
-
-    pickerMarkerTimer.current = window.setTimeout(() => {
-      setIsPickerMarkerResetting(true);
-      setPickerMarkerIndex(wrapsForward ? -1 : projects.length);
-      setPickerMarkerTextIndex(index);
-      pickerMarkerFrame.current = window.requestAnimationFrame(() => {
-        setIsPickerMarkerResetting(false);
-        setPickerMarkerIndex(index);
-        pickerMarkerFrame.current = undefined;
-      });
-      pickerMarkerTimer.current = undefined;
-    }, PICKER_MARKER_DURATION);
+  const setPickerMarkerText = (index: number) => {
+    projectPickerRef.current?.querySelectorAll<HTMLButtonElement>("button").forEach((button, buttonIndex) => {
+      button.classList.toggle("is-marker-active", buttonIndex === index);
+    });
   };
 
   const setActiveProject = (index: number) => {
     const normalizedIndex = (index + projects.length) % projects.length;
     if (normalizedIndex !== activeProjectIndexRef.current) {
-      const currentIndex = activeProjectIndexRef.current;
       activeProjectIndexRef.current = normalizedIndex;
       setActiveProjectIndex(normalizedIndex);
-      movePickerMarker(normalizedIndex, currentIndex);
     }
   };
 
@@ -199,12 +173,8 @@ export default function HomePage() {
         window.clearTimeout(projectScrollSettleTimer.current);
       }
 
-      if (pickerMarkerTimer.current) {
-        window.clearTimeout(pickerMarkerTimer.current);
-      }
-
-      if (pickerMarkerFrame.current) {
-        window.cancelAnimationFrame(pickerMarkerFrame.current);
+      if (projectAnimationFrame.current) {
+        window.cancelAnimationFrame(projectAnimationFrame.current);
       }
     };
   }, []);
@@ -217,14 +187,14 @@ export default function HomePage() {
     hasInteractedWithProjects.current = true;
   };
 
-  const moveToProject = (index: number, shouldStopAutoplay = true) => {
+  function moveToProject(index: number, shouldStopAutoplay = true) {
     if (shouldStopAutoplay) {
       stopProjectAutoplay();
     }
 
     const projectList = projectListRef.current;
 
-    if (!projectList) {
+    if (!projectList || isProjectTransitioningRef.current) {
       return;
     }
 
@@ -238,12 +208,77 @@ export default function HomePage() {
         ? 0
         : targetIndex + 1;
 
-    setActiveProject(targetIndex);
-    projectList.scrollTo({
-      left: projectList.clientWidth * physicalIndex,
-      behavior: "smooth",
-    });
-  };
+    if (targetIndex === currentIndex) {
+      return;
+    }
+
+    const startLeft = projectList.scrollLeft;
+    const targetLeft = projectList.clientWidth * physicalIndex;
+    const transitionStartedAt = window.performance.now();
+    const markerWrapDirection = wrapsForward ? 1 : wrapsBackward ? -1 : 0;
+
+    isProjectTransitioningRef.current = true;
+    setIsProjectTransitioning(true);
+    setIsPickerMarkerResetting(true);
+    setPickerMarkerText(currentIndex);
+    projectList.classList.add("is-project-transitioning");
+
+    const finishTransition = () => {
+      if (wrapsForward || wrapsBackward) {
+        projectList.scrollLeft = projectList.clientWidth * (targetIndex + 1);
+      }
+
+      setPickerMarkerPosition(targetIndex);
+      setPickerMarkerText(targetIndex);
+      setPickerMarkerIndex(targetIndex);
+      setPickerMarkerTextIndex(targetIndex);
+      setActiveProject(targetIndex);
+      projectList.classList.remove("is-project-transitioning");
+      isProjectTransitioningRef.current = false;
+      setIsPickerMarkerResetting(false);
+      setIsProjectTransitioning(false);
+      projectAnimationFrame.current = undefined;
+    };
+
+    const animateTransition = (now: number) => {
+      const progress = Math.min((now - transitionStartedAt) / PROJECT_TRANSITION_DURATION, 1);
+      const easedProgress = 1 - Math.pow(1 - progress, 4);
+      const nextLeft = startLeft + (targetLeft - startLeft) * easedProgress;
+
+      projectList.scrollLeft = nextLeft;
+
+      if (markerWrapDirection === 1) {
+        const markerProgress = progress < 0.5
+          ? currentIndex + 2 * progress
+          : -1 + 2 * (progress - 0.5);
+        setPickerMarkerPosition(markerProgress);
+        if (progress >= 0.5) {
+          setPickerMarkerText(targetIndex);
+        }
+      } else if (markerWrapDirection === -1) {
+        const markerProgress = progress < 0.5
+          ? currentIndex - 2 * progress
+          : projects.length - 2 * (progress - 0.5);
+        setPickerMarkerPosition(markerProgress);
+        if (progress >= 0.5) {
+          setPickerMarkerText(targetIndex);
+        }
+      } else {
+        setPickerMarkerPosition(currentIndex + (targetIndex - currentIndex) * easedProgress);
+        if (progress >= 0.5) {
+          setPickerMarkerText(targetIndex);
+        }
+      }
+
+      if (progress < 1) {
+        projectAnimationFrame.current = window.requestAnimationFrame(animateTransition);
+      } else {
+        finishTransition();
+      }
+    };
+
+    projectAnimationFrame.current = window.requestAnimationFrame(animateTransition);
+  }
 
   const updateActiveProject = () => {
     const projectList = projectListRef.current;
@@ -252,20 +287,15 @@ export default function HomePage() {
       return;
     }
 
-    const physicalIndex = Math.round(projectList.scrollLeft / projectList.clientWidth);
-    const projectIndex = physicalIndex === 0
-      ? projects.length - 1
-      : physicalIndex === projects.length + 1
-        ? 0
-        : physicalIndex - 1;
-
-    setActiveProject(projectIndex);
+    if (isProjectTransitioningRef.current) {
+      return;
+    }
 
     if (projectScrollSettleTimer.current) {
       window.clearTimeout(projectScrollSettleTimer.current);
     }
 
-    projectScrollSettleTimer.current = window.setTimeout(normalizeProjectLoop, 220);
+    projectScrollSettleTimer.current = window.setTimeout(normalizeProjectLoop, 120);
   };
 
   const normalizeProjectLoop = () => {
@@ -275,15 +305,25 @@ export default function HomePage() {
       return;
     }
 
+    if (isProjectTransitioningRef.current) {
+      return;
+    }
+
     const physicalIndex = Math.round(projectList.scrollLeft / projectList.clientWidth);
+    const projectIndex = physicalIndex === 0
+      ? projects.length - 1
+      : physicalIndex === projects.length + 1
+        ? 0
+        : Math.min(Math.max(physicalIndex - 1, 0), projects.length - 1);
 
     if (physicalIndex === 0 || physicalIndex === projects.length + 1) {
-      const projectIndex = physicalIndex === 0 ? projects.length - 1 : 0;
-      projectList.scrollTo({
-        left: projectList.clientWidth * (projectIndex + 1),
-        behavior: "auto",
-      });
+      projectList.scrollLeft = projectList.clientWidth * (projectIndex + 1);
     }
+
+    setPickerMarkerPosition(projectIndex);
+    setPickerMarkerIndex(projectIndex);
+    setPickerMarkerTextIndex(projectIndex);
+    setActiveProject(projectIndex);
   };
 
   useEffect(() => {
@@ -418,7 +458,7 @@ export default function HomePage() {
         </header>
         <div
           id="project-gallery"
-          className="alt-project-list"
+          className={`alt-project-list${isProjectTransitioning ? " is-project-transitioning" : ""}`}
           onFocusCapture={stopProjectAutoplay}
           onPointerDown={stopProjectAutoplay}
           onScroll={updateActiveProject}
@@ -435,6 +475,7 @@ export default function HomePage() {
             aria-label={`Previous project: ${projects[previousProjectIndex].title}`}
             className="alt-project-gallery-arrow alt-project-gallery-arrow-previous"
             onClick={() => moveToProject(previousProjectIndex)}
+            disabled={isProjectTransitioning}
             type="button"
           >
             <span className="alt-gallery-chevron" aria-hidden="true" />
@@ -442,6 +483,7 @@ export default function HomePage() {
           <div
             className={`alt-project-gallery-picker${isPickerMarkerResetting ? " is-resetting" : ""}`}
             aria-label="Choose a project"
+            ref={projectPickerRef}
             style={{ "--picker-marker-index": pickerMarkerIndex } as CSSProperties}
           >
             <span className="alt-project-gallery-marker" aria-hidden="true" />
@@ -453,6 +495,7 @@ export default function HomePage() {
                 className={pickerMarkerTextIndex === index ? "is-marker-active" : undefined}
                 key={project.id}
                 onClick={() => moveToProject(index)}
+                disabled={isProjectTransitioning}
                 type="button"
               >
                 {String(index + 1).padStart(2, "0")}
@@ -463,6 +506,7 @@ export default function HomePage() {
             aria-label={`Next project: ${projects[nextProjectIndex].title}`}
             className="alt-project-gallery-arrow alt-project-gallery-arrow-next"
             onClick={() => moveToProject(nextProjectIndex)}
+            disabled={isProjectTransitioning}
             type="button"
           >
             <span className="alt-gallery-chevron" aria-hidden="true" />

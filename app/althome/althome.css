@@ -387,9 +387,13 @@ body:has(.alt-home) > .global-footer {
   display: flex;
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+}
+
+.alt-project-list.is-project-transitioning {
+  scroll-snap-type: none;
 }
 
 .alt-project-list::-webkit-scrollbar {
@@ -444,6 +448,11 @@ body:has(.alt-home) > .global-footer {
 .alt-project-gallery-arrow:active {
   color: #0071e3;
   transform: scale(1.08);
+}
+
+.alt-project-gallery-arrow:disabled,
+.alt-project-gallery-picker button:disabled {
+  cursor: default;
 }
 
 .alt-gallery-chevron {
@@ -1107,7 +1116,7 @@ body:has(.alt-home) > .global-footer {
     display: flex;
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
   }
