@@ -87,7 +87,6 @@ export default function HomePage() {
       return;
     }
 
-    const mobileQuery = window.matchMedia("(max-width: 640px)");
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     let advanceTimer: number | undefined;
 
@@ -99,7 +98,7 @@ export default function HomePage() {
     };
 
     const scheduleAdvance = () => {
-      if (!mobileQuery.matches || reducedMotionQuery.matches || hasInteractedWithProjects.current || advanceTimer) {
+      if (reducedMotionQuery.matches || hasInteractedWithProjects.current || advanceTimer) {
         return;
       }
 
@@ -136,11 +135,8 @@ export default function HomePage() {
       return;
     }
 
-    const mobileQuery = window.matchMedia("(max-width: 640px)");
     const alignRail = () => {
-      if (mobileQuery.matches) {
-        projectList.scrollTo({ left: projectList.clientWidth * (activeProjectIndexRef.current + 1), behavior: "auto" });
-      }
+      projectList.scrollTo({ left: projectList.clientWidth * (activeProjectIndexRef.current + 1), behavior: "auto" });
     };
 
     const frameId = window.requestAnimationFrame(alignRail);
@@ -199,7 +195,7 @@ export default function HomePage() {
   const updateActiveProject = () => {
     const projectList = projectListRef.current;
 
-    if (!projectList || !window.matchMedia("(max-width: 640px)").matches) {
+    if (!projectList) {
       return;
     }
 
