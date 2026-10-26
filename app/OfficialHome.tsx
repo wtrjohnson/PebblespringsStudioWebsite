@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { PerformanceSection } from "./LegacyHome.tsx";
 import { carouselProjects } from "./portfolioData.ts";
 import "./althome/althome.css";
 
 const projects = carouselProjects.filter((project) => !project.isProposition);
+const PICKER_MARKER_DURATION = 260;
 const gallerySlides = [
   { project: projects[projects.length - 1], projectIndex: projects.length - 1, isClone: true, key: "project-clone-last" },
   ...projects.map((project, projectIndex) => ({ project, projectIndex, isClone: false, key: project.id })),
@@ -46,16 +48,59 @@ export default function HomePage() {
   const [isMiniNavVisible, setIsMiniNavVisible] = useState(false);
   const [isMiniNavOpen, setIsMiniNavOpen] = useState(false);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+  const [pickerMarkerIndex, setPickerMarkerIndex] = useState(0);
+  const [pickerMarkerTextIndex, setPickerMarkerTextIndex] = useState(0);
+  const [isPickerMarkerResetting, setIsPickerMarkerResetting] = useState(false);
   const projectListRef = useRef<HTMLDivElement>(null);
   const activeProjectIndexRef = useRef(0);
   const hasInteractedWithProjects = useRef(false);
   const projectScrollSettleTimer = useRef<number | undefined>(undefined);
+  const pickerMarkerTimer = useRef<number | undefined>(undefined);
+  const pickerMarkerFrame = useRef<number | undefined>(undefined);
+
+  const movePickerMarker = (index: number, currentIndex: number) => {
+    if (pickerMarkerTimer.current) {
+      window.clearTimeout(pickerMarkerTimer.current);
+    }
+
+    if (pickerMarkerFrame.current) {
+      window.cancelAnimationFrame(pickerMarkerFrame.current);
+    }
+
+    const wrapsForward = currentIndex === projects.length - 1 && index === 0;
+    const wrapsBackward = currentIndex === 0 && index === projects.length - 1;
+
+    if (!wrapsForward && !wrapsBackward) {
+      setIsPickerMarkerResetting(false);
+      setPickerMarkerIndex(index);
+      setPickerMarkerTextIndex(index);
+      return;
+    }
+
+    setIsPickerMarkerResetting(false);
+    setPickerMarkerTextIndex(currentIndex);
+    setPickerMarkerIndex(wrapsForward ? projects.length : -1);
+
+    pickerMarkerTimer.current = window.setTimeout(() => {
+      setIsPickerMarkerResetting(true);
+      setPickerMarkerIndex(wrapsForward ? -1 : projects.length);
+      setPickerMarkerTextIndex(index);
+      pickerMarkerFrame.current = window.requestAnimationFrame(() => {
+        setIsPickerMarkerResetting(false);
+        setPickerMarkerIndex(index);
+        pickerMarkerFrame.current = undefined;
+      });
+      pickerMarkerTimer.current = undefined;
+    }, PICKER_MARKER_DURATION);
+  };
 
   const setActiveProject = (index: number) => {
     const normalizedIndex = (index + projects.length) % projects.length;
     if (normalizedIndex !== activeProjectIndexRef.current) {
+      const currentIndex = activeProjectIndexRef.current;
       activeProjectIndexRef.current = normalizedIndex;
       setActiveProjectIndex(normalizedIndex);
+      movePickerMarker(normalizedIndex, currentIndex);
     }
   };
 
@@ -153,6 +198,14 @@ export default function HomePage() {
       if (projectScrollSettleTimer.current) {
         window.clearTimeout(projectScrollSettleTimer.current);
       }
+
+      if (pickerMarkerTimer.current) {
+        window.clearTimeout(pickerMarkerTimer.current);
+      }
+
+      if (pickerMarkerFrame.current) {
+        window.cancelAnimationFrame(pickerMarkerFrame.current);
+      }
     };
   }, []);
 
@@ -212,15 +265,40 @@ export default function HomePage() {
       window.clearTimeout(projectScrollSettleTimer.current);
     }
 
-    projectScrollSettleTimer.current = window.setTimeout(() => {
-      if (physicalIndex === 0 || physicalIndex === projects.length + 1) {
-        projectList.scrollTo({
-          left: projectList.clientWidth * (projectIndex + 1),
-          behavior: "auto",
-        });
-      }
-    }, 120);
+    projectScrollSettleTimer.current = window.setTimeout(normalizeProjectLoop, 220);
   };
+
+  const normalizeProjectLoop = () => {
+    const projectList = projectListRef.current;
+
+    if (!projectList) {
+      return;
+    }
+
+    const physicalIndex = Math.round(projectList.scrollLeft / projectList.clientWidth);
+
+    if (physicalIndex === 0 || physicalIndex === projects.length + 1) {
+      const projectIndex = physicalIndex === 0 ? projects.length - 1 : 0;
+      projectList.scrollTo({
+        left: projectList.clientWidth * (projectIndex + 1),
+        behavior: "auto",
+      });
+    }
+  };
+
+  useEffect(() => {
+    const projectList = projectListRef.current;
+
+    if (!projectList) {
+      return;
+    }
+
+    projectList.addEventListener("scrollend", normalizeProjectLoop);
+
+    return () => {
+      projectList.removeEventListener("scrollend", normalizeProjectLoop);
+    };
+  }, []);
 
   const previousProjectIndex = (activeProjectIndex + projects.length - 1) % projects.length;
   const nextProjectIndex = (activeProjectIndex + 1) % projects.length;
@@ -361,13 +439,18 @@ export default function HomePage() {
           >
             <span className="alt-gallery-chevron" aria-hidden="true" />
           </button>
-          <div className="alt-project-gallery-picker" aria-label="Choose a project">
+          <div
+            className={`alt-project-gallery-picker${isPickerMarkerResetting ? " is-resetting" : ""}`}
+            aria-label="Choose a project"
+            style={{ "--picker-marker-index": pickerMarkerIndex } as CSSProperties}
+          >
+            <span className="alt-project-gallery-marker" aria-hidden="true" />
             {projects.map((project, index) => (
               <button
                 aria-controls="project-gallery"
                 aria-current={activeProjectIndex === index ? "true" : undefined}
                 aria-label={`View ${project.title}`}
-                className={activeProjectIndex === index ? "is-active" : undefined}
+                className={pickerMarkerTextIndex === index ? "is-marker-active" : undefined}
                 key={project.id}
                 onClick={() => moveToProject(index)}
                 type="button"

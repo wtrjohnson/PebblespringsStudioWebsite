@@ -470,6 +470,23 @@ body:has(.alt-home) > .global-footer {
   padding: 3px;
 }
 
+.alt-project-gallery-marker {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 29px;
+  height: 24px;
+  border-radius: 50%;
+  background: #0071e3;
+  pointer-events: none;
+  transform: translateX(calc(var(--picker-marker-index) * 29px));
+  transition: transform 260ms var(--alt-ease);
+}
+
+.alt-project-gallery-picker.is-resetting .alt-project-gallery-marker {
+  transition: none;
+}
+
 .alt-project-gallery-picker button {
   position: relative;
   z-index: 1;
@@ -494,9 +511,7 @@ body:has(.alt-home) > .global-footer {
   color: var(--alt-ink);
 }
 
-.alt-project-gallery-picker button.is-active {
-  background: #0071e3;
-  border-radius: 50%;
+.alt-project-gallery-picker button.is-marker-active {
   color: #ffffff;
 }
 
@@ -1193,9 +1208,7 @@ body:has(.alt-home) > .global-footer {
     color: var(--alt-ink);
   }
 
-  .alt-project-gallery-picker button.is-active {
-    background: #0071e3;
-    border-radius: 50%;
+  .alt-project-gallery-picker button.is-marker-active {
     color: #ffffff;
   }
 
